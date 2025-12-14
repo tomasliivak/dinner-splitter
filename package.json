@@ -1,0 +1,23 @@
+{
+  "name": "dinner-splitter",
+  "version": "1.0.0",
+  "description": "A mobile-first web app that lets groups split a restaurant bill by uploading a receipt, claiming items, and paying via Venmo.",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm --prefix server run dev\" \"npm --prefix client run dev\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tomasliivak/dinner-splitter.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tomasliivak/dinner-splitter/issues"
+  },
+  "homepage": "https://github.com/tomasliivak/dinner-splitter#readme",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
