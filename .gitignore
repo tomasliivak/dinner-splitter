@@ -1,6 +1,40 @@
+# dependencies
 node_modules/
+client/node_modules/
+server/node_modules/
+
+# env
 .env
 .env.*
+*.local
+client/.env
+server/.env
+
+# builds
 dist/
+client/dist/
+dist-ssr/
 .vite/
+
+# logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# editor / OS
 .DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+server/splitter-482802-3a1485c24470.json
+splitter-482802-3a1485c24470.json

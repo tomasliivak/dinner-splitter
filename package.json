@@ -19,5 +19,13 @@
   "homepage": "https://github.com/tomasliivak/dinner-splitter#readme",
   "devDependencies": {
     "concurrently": "^9.2.1"
+  },
+  "dependencies": {
+    "@google-cloud/vision": "^5.3.4",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "multer": "^2.0.2",
+    "openai": "^6.15.0",
+    "zod": "^4.2.1"
   }
 }

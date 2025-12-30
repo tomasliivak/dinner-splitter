@@ -1,0 +1,12 @@
+
+#home button {
+    padding: 20px 40px 20px 40px;
+    text-align: center;
+    
+}
+
+#home div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}

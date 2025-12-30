@@ -1,0 +1,21 @@
+a {
+    background: #8023FF;
+    color: white;
+    text-decoration: none;
+    border: 1px solid transparent;
+    border-radius: 5px;
+}
+
+button {
+    background: #8023FF;
+    color: white;
+    text-decoration: none;
+    border: 1px solid transparent;
+    border-radius: 5px;
+}
+
+.app {
+    max-width: 480px;
+    margin: 0 auto;
+}
+/* #8023FF */ 
