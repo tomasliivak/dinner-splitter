@@ -2,6 +2,7 @@ import express from "express"
 import multer from "multer"
 import sharp from "sharp";
 import { ocrReceiptImageBuffer } from "../services/ocr.js";
+import { extractReceipt } from "../services/extract.js"
 
 export const receiptsRouter = express.Router()
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 8 * 1024 * 1024 } })
@@ -19,7 +20,10 @@ receiptsRouter.post(
             .jpeg({ quality: 90 })
             .toBuffer();
         const text = await ocrReceiptImageBuffer(normalizedBuffer)
-        res.json({ text })
+
+        const receipt = await extractReceipt(text)
+
+        return res.json({ receipt })
     }
-  );
+  )
   
