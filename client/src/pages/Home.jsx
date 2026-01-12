@@ -1,12 +1,14 @@
 import { NavLink } from "react-router-dom"
 import { useRef } from "react"
 import { useState } from "react"
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 
 import "./Home.css"
 export default function Home() {
     const fileInputRef = useRef(null)
+    const [receiptId,setReceiptId] = useState()
+    const [key, setKey] = useState()
     const [ready, setReady] = useState(false)
     const navigate = useNavigate()
 
@@ -25,12 +27,15 @@ export default function Home() {
         const data = await res.json()
         console.log(data)
         e.target.value = null
+        setReceiptId(data.receipt_id)
+        setKey(data.share_key)
         setReady(true)
       }
-
+      // sends user to receipt page with the url of the receiptId and key
       useEffect(() => {
         if (ready) {
-          navigate("/new")
+            const nav = "/r/" + receiptId + "?key=" + key
+            navigate(nav)
         }
       }, [ready, navigate])
     

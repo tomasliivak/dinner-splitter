@@ -1,12 +1,9 @@
-import pg from "pg";
-import dotenv from "dotenv";
+import pg from "pg"
 
-dotenv.config();
-
-const { Pool } = pg;
+const { Pool } = pg
 
 if (!process.env.DATABASE_URL) {
-  throw new Error("Missing DATABASE_URL");
+  throw new Error("Missing DATABASE_URL")
 }
 
 export const pool = new Pool({
@@ -16,4 +13,4 @@ export const pool = new Pool({
   // Many hosted Postgres providers require SSL.
   // We'll turn SSL on only in production.
   ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: true } : false,
-});
+})

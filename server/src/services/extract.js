@@ -12,6 +12,7 @@ const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   Return ONLY valid JSON exactly matching:
   {
     "subtotal": number|null,
+    "merchant_name": string
     "tax": number|null,
     "tip": number|null,
     "total": number|null,
