@@ -49,7 +49,7 @@ const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   }
   
 export async function extractReceipt (ocrText) {
-    console.log("EXTRACT RAN")
+    
     const prompt = buildPrompt(ocrText)
 
     const response = await client.responses.create({

@@ -25,7 +25,7 @@ export default function Home() {
         })
 
         const data = await res.json()
-        console.log(data)
+        
         e.target.value = null
         setReceiptId(data.receipt_id)
         setKey(data.share_key)

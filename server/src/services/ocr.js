@@ -18,7 +18,7 @@ function getMedianHeight(words) {
 }
 
 function getLines(words,median) {
-  console.log("lines ran")
+  
   const lines = []
   for (const word of words) {
     let word_center_y = word.vertices[3].y < word.vertices[0] ? word.vertices[3].y +(Math.abs(word.vertices[3].y-word.vertices[0].y)/2) : word.vertices[0].y +(Math.abs(word.vertices[3].y-word.vertices[0].y)/2)
@@ -53,7 +53,7 @@ function linesToString(lines) {
 }
 
 export async function ocrReceiptImageBuffer(imageBuffer) {
-  console.log("OCR RAN")
+  
   // Use DOCUMENT_TEXT_DETECTION for receipts (usually better structure than plain TEXT_DETECTION)
   // removed documentTextDetection
   const [result] = await visionClient.documentTextDetection({
@@ -75,10 +75,10 @@ export async function ocrReceiptImageBuffer(imageBuffer) {
 
   const median = getMedianHeight(words)
   const lines = getLines(words,median)
-  console.log(lines)
+  
   const ocrString = linesToString(lines)
-  console.log(ocrString)
-  // console.dir(words, {depth:null})
+  
+  
   // const fullText = result?.fullTextAnnotation?.text ?? "";
   return ocrString;
 }

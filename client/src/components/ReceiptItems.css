@@ -1,0 +1,11 @@
+.receipt_item {
+    display: flex;
+}
+
+.receipt_item > h3 {
+    padding-inline: 10px;
+}
+
+.receipt_item.isActive {
+    background: red;
+}

@@ -11,6 +11,13 @@ import { extractReceipt } from "../services/extract.js"
 export const receiptsRouter = express.Router()
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 8 * 1024 * 1024 } })
 
+function hashToken(token) {
+    return crypto
+      .createHash("sha256")
+      .update(token)
+      .digest("hex");
+  }
+
 receiptsRouter.post(
     "/scan",
     upload.single("receipt"),
@@ -76,4 +83,60 @@ receiptsRouter.post(
 
     }
   )
-  
+
+// Note: definetly need to go through all of these and add error handling. Also need to go through a standardize variable names cus they are a bit effy rn
+// Additional Note: Go through and add the proper status codes for the different responses
+// four dbs are receipts, receipt_items, participants, and claims
+// definetly need to go through and protect stuff from sql injection as well, and such
+receiptsRouter.get(
+    "/retrieve",
+    async (req,res) => {
+        const { receiptId,shareKey } = req.query
+        let items = []
+        const result = await pool.query(
+            `
+            SELECT *
+            FROM receipts
+            WHERE id = $1
+            AND share_key = $2
+            LIMIT 1
+            `, 
+            [receiptId, shareKey])
+        if (result.rows.length == 0) {
+            return res.status(404).json({ error: "Receipt not found" })
+        }
+        else {
+        items = await pool.query(
+            `
+            SELECT *
+            FROM receipt_items
+            WHERE receipt_id = $1
+            `,
+            [receiptId]
+        )
+        }
+
+        return res.json({receipt:result.rows[0], items:items.rows})
+    }
+)
+receiptsRouter.post("/register",
+    async(req,res) => {
+
+        const { receiptId, participantId } = req.body
+
+        const hashed = hashToken(participantId)
+
+        //also eventually need venmo_handle and display_name
+        const displayName = "development"
+
+        const result = await pool.query(
+            `
+            INSERT INTO participants (receipt_id,display_name, token_hash)
+            VALUES ($1,$2,$3)
+            RETURNING *
+            `, [receiptId,displayName,hashed]
+        )
+        console.log(result)
+        return res.status(201).json({participant: result.rows[0]})
+    }
+)
