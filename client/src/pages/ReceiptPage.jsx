@@ -29,7 +29,6 @@ export default function ReceiptPage() {
     async function registerParticipant(receiptId) {
         let id = crypto.randomUUID(); // browser-native, secure
         localStorage.setItem("participant_id", id)
-        console.log(receiptId)
         const res = await fetch("http://localhost:3000/api/receipts/register", {
             method: "POST",
             headers: {
@@ -64,23 +63,29 @@ export default function ReceiptPage() {
 
 
     function itemClick(item) {
-        console.log(item)
-        if (!activeItems.includes(item.id)) {
-            setActiveItems((prev) => [...prev,item.id])
+        
+        if (!activeItems.includes(item)) {
+            setActiveItems((prev) => [...prev,item])
         }
         else {
-            setActiveItems((prev) => prev.filter(prevItem => prevItem != item.id))
+            setActiveItems((prev) => prev.filter(prevItem => prevItem != item))
         }
-        console.log(activeItems)
+        
     }
-
+    
+    function payClick() {
+        claimItems(activeItems)
+    }
     // stopped working here
-    async function claimItems() {
-        const res = await pool.query(
-            `
-
-            `
+    async function claimItems(items) {
+        const res = await fetch("http://localhost:3000/api/receipts/claim", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Participant-Token" : participantId },
+            body: JSON.stringify({claimedItems: items})
+            }
         )
+        const data = await res.json()
+        window.open(data.venmoLink, "_blank")
     }
     function renderItems() {
         return items.map((item) => <ReceiptItem item={item} onClick={itemClick} activeItems={activeItems}/>)
@@ -89,6 +94,9 @@ export default function ReceiptPage() {
         <section>
             <h1>Your receipt</h1>
             {items ? renderItems() : undefined}
+            <button disabled={activeItems.length < 1} onClick={() => {
+                payClick()
+            }}>Pay Now</button>
             <h3>Receipt:{receipt ? receipt.merchant_name: null}</h3>
         </section>
     )

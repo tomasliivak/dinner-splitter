@@ -9,15 +9,16 @@ import './App.css'
 export default function App() {
   
   return (
-    <div className="app">
-      <main>
-        <Routes>
-          <Route path="/" element={<Home/>} />
-          <Route path="/r/:receiptId" element={<ReceiptPage />} />
-        </Routes>
-      </main>
+    <div className="page">
+      <div className="app">
+        <main>
+          <Routes>
+            <Route path="/" element={<Home/>} />
+            <Route path="/r/:receiptId" element={<ReceiptPage />} />
+          </Routes>
+        </main>
+      </div>
     </div>
-
   )
 }
 

@@ -14,8 +14,32 @@ button {
     border-radius: 5px;
 }
 
-.app {
-    max-width: 480px;
-    margin: 0 auto;
-}
-/* #8023FF */ 
+.page {
+    min-height: 100vh;
+    background: white; /* mobile */
+  }
+  
+  .app {
+    min-height: 100vh;
+    padding: 16px;
+    background: white;
+  }
+  
+  /* Desktop-only polish */
+  @media (min-width: 900px) {
+    .page {
+      background: #f5f5f7;
+      padding: 32px 0;
+    }
+  
+    .app {
+      min-height: auto;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 24px;
+  
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+    }
+  }

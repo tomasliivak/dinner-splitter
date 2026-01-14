@@ -11,6 +11,12 @@ import { extractReceipt } from "../services/extract.js"
 export const receiptsRouter = express.Router()
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 8 * 1024 * 1024 } })
 
+function createVenmoLink(venmoHandle,total) {
+    // https://venmo.com/?txn=pay&recipients=tomasliivak&amount=10&note=dinner
+    //maybe eventually add custom labels but feels irrelevant rn. Replace the note with the name of the app?
+    let link = "https://venmo.com/?txn=pay&recipients=" + venmoHandle + "&amount=" + total +"&note=dinner"
+    return link
+}
 function hashToken(token) {
     return crypto
       .createHash("sha256")
@@ -37,7 +43,6 @@ receiptsRouter.post(
         const share_key = crypto.randomBytes(16).toString("hex")
         
         const client = await pool.connect()
-
         try {
             await client.query("BEGIN")
 
@@ -72,6 +77,7 @@ receiptsRouter.post(
               }
             
             await client.query("COMMIT")
+
 
             return res.json({created:true,receipt_id:receiptRow.id,share_key:share_key})
         } catch (err) {
@@ -138,5 +144,56 @@ receiptsRouter.post("/register",
         )
         console.log(result)
         return res.status(201).json({participant: result.rows[0]})
+    }
+)
+
+receiptsRouter.post("/claim",
+    async(req,res) => {
+        const { claimedItems } = req.body
+        const participantToken = req.get("Participant-Token")
+        const hashed = hashToken(participantToken)
+
+        const participant = await pool.query(
+            `SELECT id FROM participants WHERE token_hash = $1`,
+            [hashed]
+          )
+        const participantId = participant.rows[0].id
+        let total = 0
+        for (const item of claimedItems) {
+            total += Number(item.line_total)
+        }
+        // temp for now. Need to add venmoHandle input option!!
+        const venmoHandle = "tomasliivak"
+
+        const client = await pool.connect()
+        try {
+            await client.query("BEGIN")
+            const insertedItems = []
+
+            for (const item of claimedItems) {
+                if (item.quantity == null) {
+                    item.quantity = 1
+                }
+                const { rows } = await client.query(
+                  `
+                  INSERT INTO claims (receipt_id,receipt_item_id,participant_id,quantity_claimed)
+                  VALUES ($1,$2,$3,$4)
+                  RETURNING *
+                  `,
+                  [item.receipt_id,item.id,participantId,item.quantity]
+                )
+            
+                insertedItems.push(rows[0])
+              }
+            console.log(insertedItems)
+            await client.query("COMMIT")
+            let link = createVenmoLink(venmoHandle,total)
+            return res.json({created:true,createdClaims:insertedItems,venmoLink:link})
+        } catch (err) {
+            await client.query("ROLLBACK")
+            throw err
+        } finally {
+            client.release()
+        }
     }
 )
