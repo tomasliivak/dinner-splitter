@@ -18,7 +18,8 @@ A mobile-first web app that lets groups split a restaurant bill by uploading a r
 **Backend**
 - Node.js
 - Express
-- OCR provider (e.g. Google Vision / AWS Textract)
+- Google Vision
+- Open AI 
 
 ## Project Structure
 client/   # React frontend
@@ -26,8 +27,3 @@ server/   # Express backend
 
 ## Notes
 - OCR accuracy depends on receipt quality
-- Manual corrections are supported
-- Receipts are intended for short-term use
-
-## License
-MIT
