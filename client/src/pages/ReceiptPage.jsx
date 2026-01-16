@@ -147,6 +147,7 @@ export default function ReceiptPage() {
         const data = await res.json()
         window.open(data.venmoLink, "_blank")
     }
+    
     function renderItems() {
         if (!claimedItems) {
             return items.map((item) => <ReceiptItem key={item.id} item={item} onClick={itemClick} activeItems={activeItems}/>)
@@ -169,10 +170,20 @@ export default function ReceiptPage() {
     function removeClaimClick(item) {
         removeClaimedItem(item)
     }
-    // need to implement ability to remove:
+    
     async function removeClaimedItem(item) {
-        console.log(item)
+        const res = await fetch("http://localhost:3000/api/receipts/unclaim",
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json"},
+                body: JSON.stringify({item: item})
+            }
+        )
+        const data = await res.json()
+        let newClaimed = claimedItems.filter(claim => claim.id !== data.removed.id)
+        setClaimedItems(newClaimed)
     }
+
     return (
         <section className="receipt-page">
             <div id="column-receipt-topper">

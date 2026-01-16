@@ -206,3 +206,17 @@ receiptsRouter.post("/claim",
         }
     }
 )
+
+receiptsRouter.post("/unclaim",
+    async(req,res) => {
+        const { item } = req.body
+        const claims = await pool.query(
+            `
+                DELETE FROM claims
+                WHERE receipt_item_id = $1
+                RETURNING *;
+            `, [item.id]
+        )
+        return res.json({removed: claims.rows[0]})
+    }
+)
