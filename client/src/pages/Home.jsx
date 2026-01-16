@@ -3,6 +3,7 @@ import { useRef } from "react"
 import { useState } from "react"
 import { useEffect } from "react"
 import { useNavigate } from "react-router-dom"
+import  LoadingDots from "../components/LoadingDots"
 
 import "./Home.css"
 export default function Home() {
@@ -10,12 +11,14 @@ export default function Home() {
     const [receiptId,setReceiptId] = useState()
     const [key, setKey] = useState()
     const [ready, setReady] = useState(false)
+    const [loading, setLoading] = useState(false)
     const navigate = useNavigate()
 
     async function handleFileUpload(e) {
         // upload file to backend
         const file = e.target.files[0]
         if (!file) return
+        setLoading(true)
         const formData = new FormData()
         formData.append("receipt", file)
 
@@ -29,6 +32,7 @@ export default function Home() {
         e.target.value = null
         setReceiptId(data.receipt_id)
         setKey(data.share_key)
+        setLoading(false)
         setReady(true)
       }
       // sends user to receipt page with the url of the receiptId and key
@@ -41,26 +45,26 @@ export default function Home() {
     
     return (
         <section id="home">
-            <div>
+            
                 <h1>Split your receipt in seconds</h1>
                 <h2>Upload a photo, claim items, pay friends</h2>
-                
-                <button onClick={() => fileInputRef.current.click()}>
-                    Upload Receipt
-                </button>
+                <div className="upload-cta">
+                    {loading && <LoadingDots/>}
+                    <button onClick={() => fileInputRef.current.click()}>
+                        Upload Receipt
+                    </button>
 
-                <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                hidden
-                onChange={handleFileUpload}
-                name="receipt"
-                />
-
-            </div>
-
+                    <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    hidden
+                    onChange={handleFileUpload}
+                    name="receipt"
+                    />
+                </div>
+            
         </section>
     )
 }

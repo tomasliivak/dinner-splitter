@@ -1,11 +1,37 @@
-.receipt_item {
+.receipt-item {
     display: flex;
+    background: white;
+    text-decoration: none;
+    border: 1px transparent;
+    align-items: center;
+    justify-content: left;
+    margin: 2px;
+}
+.receipt-item > p {
+    color:rgb(107, 107, 107);
+    font-size: 15px;
+    padding-block: 10px;
+}
+.item-quantity {
+    margin-left:5px;
+    margin-right:15px;
+}
+.item-price {
+    margin-left: auto;
+    margin-right: 3px;
 }
 
-.receipt_item > h3 {
-    padding-inline: 10px;
+.receipt-item.isActive {
+    /*border: 2px solid rgb(88, 255, 88); */
+    border-radius: 10px;
+    background: #ff6f7e;
+}
+.receipt-item.isActive > p {
+    color:white;
 }
 
-.receipt_item.isActive {
-    background: red;
+.dot-buffer {
+    margin-left:4px;
+    margin-top:3px;
 }
+

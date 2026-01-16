@@ -1,0 +1,15 @@
+header {
+    background: #EF3D50;
+    color: white;
+    padding:10px;
+    display:flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+@media (min-width: 900px) {
+    header {
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    }
+}

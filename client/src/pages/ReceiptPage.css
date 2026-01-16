@@ -1,0 +1,83 @@
+.receipt-page {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    margin-inline: 30px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05) ; 
+    padding: 25px
+}
+@media (min-width: 900px) {
+    .receipt-page {
+        margin-inline: 70px;
+    }
+  }
+
+#receipt-top {
+    display:flex;
+    justify-content: left;
+    border-bottom: 1px grey solid;
+    margin-bottom: 10px;
+}
+#items-div {
+    border-bottom: 1px grey solid;
+    margin-bottom:10px;
+}
+#receipt-top > div > h4 {
+    margin-bottom: 7px;
+}
+#receipt-top > div > p {
+    color: grey;
+    font-size: 11px;
+    margin-bottom: 3px;
+}
+
+.receipt-svg {
+    margin-right: 15px
+}
+.totals-item {
+    display:flex;
+    justify-content:space-between;
+    margin-bottom: 3px;
+}
+.totals-item > h4 {
+    font-weight: 600;
+}
+.totals-item > p {
+    color: grey;
+}
+#last-totals-item {
+    margin-bottom: 10px;
+}
+
+#show-claimed-btn {
+    display: flex;
+    background: white;
+    text-decoration: none;
+    border: 1px transparent;
+    justify-content: left;
+    padding: 8px;
+    font-weight: 600;
+    font-size: 14px; 
+}
+
+#remove-header {
+    font-size: 12px;
+    color: grey;
+    margin-left: 8px;
+}
+
+#receipt-totals-header {
+    margin-bottom: 10px;
+}
+
+#venmo-btn {
+    padding: 10px 20px 10px 20px;
+    text-align: center;
+    font-size: 20px;
+    border-radius: 20px;
+    box-shadow: 0px 10px 25px rgba(0,0,0,0.20);
+    background: #EF3D50;
+    color: white;
+    text-decoration: none;
+    border: 1px solid transparent;
+}

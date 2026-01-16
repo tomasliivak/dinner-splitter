@@ -99,6 +99,8 @@ receiptsRouter.get(
     async (req,res) => {
         const { receiptId,shareKey } = req.query
         let items = []
+        let claimedItems = []
+        // prolly should make this all one instance so if something fails it doesnt get messed up + the state of the dbs is all the same as it goes through it
         const result = await pool.query(
             `
             SELECT *
@@ -120,9 +122,16 @@ receiptsRouter.get(
             `,
             [receiptId]
         )
+        claimedItems = await pool.query(
+            `
+            SELECT *
+            FROM claims
+            WHERE receipt_id = $1
+            `,
+            [receiptId]
+        )
         }
-
-        return res.json({receipt:result.rows[0], items:items.rows})
+        return res.json({receipt:result.rows[0], items:items.rows, claims:claimedItems.rows})
     }
 )
 receiptsRouter.post("/register",
