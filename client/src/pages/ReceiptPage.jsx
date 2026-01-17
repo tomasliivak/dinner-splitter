@@ -38,7 +38,7 @@ export default function ReceiptPage() {
     }
     // handles participant registration
     async function registerParticipant(receiptId) {
-        let id = crypto.randomUUID(); // browser-native, secure
+        let id = crypto.randomUUID() // browser-native, secure
         localStorage.setItem("participant_id", id)
         const res = await fetch("http://localhost:3000/api/receipts/register", {
             method: "POST",
@@ -54,6 +54,7 @@ export default function ReceiptPage() {
 
     }
     // handles startup/calling to get the initial receipt and will also probably be used for refreshes later
+    // need to add check for a proper link. If not proper link, re-nav to error page. 
     async function loadReceipt() {
         const data = await getReceipt()
             setClaimedItems(data.claims)
@@ -135,7 +136,7 @@ export default function ReceiptPage() {
             setActiveItemsSubtotal(0)
         }
     },[activeItems])
-    
+    // just realized the URL payment isnt correct cus it doesnt include tax or tip. 
     async function claimItems(items) {
         const res = await fetch("http://localhost:3000/api/receipts/claim", {
             method: "POST",
@@ -170,7 +171,7 @@ export default function ReceiptPage() {
     function removeClaimClick(item) {
         removeClaimedItem(item)
     }
-    
+
     async function removeClaimedItem(item) {
         const res = await fetch("http://localhost:3000/api/receipts/unclaim",
             {

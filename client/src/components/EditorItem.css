@@ -1,0 +1,13 @@
+.editor-item {
+    display:flex;
+}
+
+.editor-item > input{
+    background: white;
+    text-decoration: none;
+    border: 1px transparent;
+    align-items: center;
+    justify-content: left;
+    margin: 2px;
+    width:100px;
+}

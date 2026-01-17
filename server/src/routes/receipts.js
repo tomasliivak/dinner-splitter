@@ -43,16 +43,19 @@ receiptsRouter.post(
         const share_key = crypto.randomBytes(16).toString("hex")
         
         const client = await pool.connect()
+
+        let venmo_handle = "tomasliivak"
+        let creator = "development"
         try {
             await client.query("BEGIN")
 
             const receiptResult = await client.query(
                 `
-                INSERT INTO receipts (share_key, merchant_name, subtotal, tax, tip, total)
-                VALUES ($1, $2, $3, $4, $5, $6)
+                INSERT INTO receipts (share_key, merchant_name, subtotal, tax, tip, total, venmo_handle, creator)
+                VALUES ($1, $2, $3, $4, $5, $6, $7,$8)
                 RETURNING *
                 `,
-                [share_key,receipt.merchant_name, receipt.subtotal, receipt.tax, receipt.tip, receipt.total]
+                [share_key,receipt.merchant_name, receipt.subtotal, receipt.tax, receipt.tip, receipt.total, venmo_handle, creator]
             )
             let receiptRow = receiptResult.rows[0]
             
