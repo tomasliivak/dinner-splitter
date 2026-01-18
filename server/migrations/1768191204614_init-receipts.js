@@ -19,7 +19,7 @@ export function up(pgm) {
       tip: { type: "numeric(10,2)" },
       total: { type: "numeric(10,2)" },
   
-      status: { type: "text", notNull: true, default: "draft" }, // draft|locked|settled
+      status: { type: "text", notNull: true, default: "draft" }, // draft|active|locked|settled
   
       created_at: { type: "timestamptz", notNull: true, default: pgm.func("now()") },
       updated_at: { type: "timestamptz", notNull: true, default: pgm.func("now()") },

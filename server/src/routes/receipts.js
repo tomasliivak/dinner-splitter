@@ -44,7 +44,7 @@ receiptsRouter.post(
         
         const client = await pool.connect()
 
-        let venmo_handle = "tomasliivak"
+        let venmo_handle = "default"
         let creator = "development"
         try {
             await client.query("BEGIN")
@@ -66,17 +66,35 @@ receiptsRouter.post(
                 if (item.quantity == null) {
                     item.quantity = 1
                 }
-                const { rows } = await client.query(
-                  `
-                  INSERT INTO receipt_items
-                    (receipt_id, name, quantity, unit_price, line_total)
-                  VALUES ($1, $2, $3, $4, $5)
-                  RETURNING *
-                  `,
-                  [receiptRow.id, item.name, item.quantity, item.unit_price, item.price]
-                )
-            
-                insertedItems.push(rows[0])
+                // eventually need to make partial claiming allowed, but workaround for mvp for now.
+                if (item.quantity > 1) {
+                    for (let i = 0;i<item.quantity;i++) {
+                        const { rows } = await client.query(
+                            `
+                            INSERT INTO receipt_items
+                              (receipt_id, name, quantity, unit_price, line_total)
+                            VALUES ($1, $2, $3, $4, $5)
+                            RETURNING *
+                            `,
+                            [receiptRow.id, item.name, 1, item.unit_price, item.unit_price]
+                          )
+                        
+                        insertedItems.push(rows[0])
+                    }
+                }
+                else {
+                    const { rows } = await client.query(
+                        `
+                        INSERT INTO receipt_items
+                          (receipt_id, name, quantity, unit_price, line_total)
+                        VALUES ($1, $2, $3, $4, $5)
+                        RETURNING *
+                        `,
+                        [receiptRow.id, item.name, item.quantity, item.unit_price, item.price]
+                      )
+                  
+                      insertedItems.push(rows[0])
+                }
               }
             
             await client.query("COMMIT")
@@ -137,6 +155,7 @@ receiptsRouter.get(
         return res.json({receipt:result.rows[0], items:items.rows, claims:claimedItems.rows})
     }
 )
+// for future notice, need to make this so if the participant has a localStorage but not a id in the participant table, redo it
 receiptsRouter.post("/register",
     async(req,res) => {
 
@@ -154,14 +173,13 @@ receiptsRouter.post("/register",
             RETURNING *
             `, [receiptId,displayName,hashed]
         )
-        console.log(result)
         return res.status(201).json({participant: result.rows[0]})
     }
 )
 
 receiptsRouter.post("/claim",
     async(req,res) => {
-        const { claimedItems } = req.body
+        const { claimedItems, venmoHandle, tipPercent, taxPercent} = req.body
         const participantToken = req.get("Participant-Token")
         const hashed = hashToken(participantToken)
 
@@ -169,14 +187,14 @@ receiptsRouter.post("/claim",
             `SELECT id FROM participants WHERE token_hash = $1`,
             [hashed]
           )
+        
         const participantId = participant.rows[0].id
         let total = 0
         for (const item of claimedItems) {
             total += Number(item.line_total)
         }
-        // temp for now. Need to add venmoHandle input option!!
-        const venmoHandle = "tomasliivak"
-
+        total += total*Number(tipPercent) + total*Number(taxPercent)
+        total = Math.round(total*100)/100
         const client = await pool.connect()
         try {
             await client.query("BEGIN")
@@ -197,7 +215,7 @@ receiptsRouter.post("/claim",
             
                 insertedItems.push(rows[0])
               }
-            console.log(insertedItems)
+            
             await client.query("COMMIT")
             let link = createVenmoLink(venmoHandle,total)
             return res.json({created:true,createdClaims:insertedItems,venmoLink:link})
@@ -221,5 +239,61 @@ receiptsRouter.post("/unclaim",
             `, [item.id]
         )
         return res.json({removed: claims.rows[0]})
+    }
+)
+
+receiptsRouter.patch("/update", 
+    async(req,res) => {
+        const { receipt, items, creatorName, venmoHandle } = req.body
+        // probably should add checks if these are valid formats of things. 
+        console.log(items)
+        console.log(receipt)
+        const client = await pool.connect()
+        try {
+            await client.query("BEGIN")
+
+            const updatedReceipt = await client.query(
+                `
+                UPDATE receipts
+                SET 
+                    merchant_name = $1,
+                    creator = $2,
+                    venmo_handle = $3,
+                    subtotal = $4,
+                    tax = $5,
+                    tip = $6,
+                    total = $7,
+                    status = $8,
+                    updated_at = NOW()
+                WHERE id = $9
+                `, [receipt.merchant_name,creatorName,venmoHandle,receipt.subtotal,receipt.tax,receipt.tip,receipt.total,"active",receipt.id]
+            )
+
+            for (const item of items) {
+                if (item.quantity == null) {
+                    item.quantity = 1
+                }
+                const { rows } = await client.query(
+                  `
+                UPDATE receipt_items
+                SET
+                    name = $1,
+                    quantity = $2,
+                    unit_price = $3,
+                    line_total = $4
+                WHERE id = $5
+                  `,
+                  [item.name,item.quantity,item.unit_price,item.line_total,item.id]
+                )
+        
+              }
+            await client.query("COMMIT")
+            return res.json({updated:true})
+        } catch (err) {
+            await client.query("ROLLBACK")
+            throw err
+        } finally {
+            client.release()
+        }
     }
 )

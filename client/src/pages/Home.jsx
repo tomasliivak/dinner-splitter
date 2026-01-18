@@ -38,7 +38,7 @@ export default function Home() {
       // sends user to receipt page with the url of the receiptId and key
       useEffect(() => {
         if (ready) {
-            const nav = "/r/" + receiptId + "?key=" + key
+            const nav = "/r/draft/" + receiptId + "?key=" + key
             navigate(nav)
         }
       }, [ready, navigate])

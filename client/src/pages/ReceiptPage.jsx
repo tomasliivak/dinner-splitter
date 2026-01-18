@@ -28,6 +28,7 @@ export default function ReceiptPage() {
         shareKey
       })
     // get the receipt data and the receipt items
+    // Note to later self: Honestly not particularly sure if the tip math is accurate/if the tip is being counted towards the total by the llm. e.i need to do testing with receipts that have tip written
     async function getReceipt() {
         const res = await fetch(`http://localhost:3000/api/receipts/retrieve?${params.toString()}`, {
             method: "GET"
@@ -141,7 +142,7 @@ export default function ReceiptPage() {
         const res = await fetch("http://localhost:3000/api/receipts/claim", {
             method: "POST",
             headers: { "Content-Type": "application/json", "Participant-Token" : participantId },
-            body: JSON.stringify({claimedItems: items})
+            body: JSON.stringify({claimedItems: items, venmoHandle: receipt.venmo_handle, taxPercent: taxPercent, tipPercent: tipPercent })
             }
         )
         setActiveItems([])
@@ -193,7 +194,7 @@ export default function ReceiptPage() {
                     <div>
                         <h4>{receipt ? receipt.merchant_name: "Merchant Name"}</h4>
                         <p>{receipt ? "Created At: " + receipt.created_at: "Loading"}</p>
-                        <p>Venmo Handle: </p>
+                        <p>Venmo Handle: {receipt ? receipt.venmo_handle: "Loading"}</p>
                     </div>
                 </div>
             </div>

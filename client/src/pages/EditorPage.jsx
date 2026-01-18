@@ -2,6 +2,7 @@ import { useLocation } from "react-router-dom"
 import { useState, useEffect, useMemo } from "react"
 import ReceiptIcon from "../components/ReceiptIcon.jsx"
 import EditorItem from "../components/EditorItem.jsx"
+import { useNavigate } from "react-router-dom"
 import "./ReceiptPage.css"
 
 // Editor Page Notes: Need to add venmo handle validation. Make page look good as well...
@@ -15,6 +16,9 @@ export default function EditorPage() {
     const [taxPercent, setTaxPercent] = useState(0)
     const [tipPercent, setTipPercent] = useState(0)
     const [venmoHandle, setVenmoHandle] = useState("")
+    const [creatorName, setCreatorName] = useState("")
+    const [ready, setReady] = useState(false)
+    const navigate = useNavigate()
 
     const params = new URLSearchParams({
         receiptId,
@@ -28,7 +32,27 @@ export default function EditorPage() {
         )
         return res.json()
     }
-    
+    async function updateReceipt() {
+        const res = await fetch("http://localhost:3000/api/receipts/update", {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+              },
+            body: JSON.stringify({
+                receipt: receipt,
+                items: items,
+                venmoHandle: venmoHandle,
+                creatorName: creatorName
+            })
+        })
+        setReady(true)
+    }
+    useEffect(() => {
+        if (ready) {
+            const nav = "/r/" + receiptId + "?key=" + shareKey
+            navigate(nav)
+        }
+      }, [ready, navigate])
     // handles startup/calling to get the initial receipt and will also probably be used for refreshes later
     // need to add check for a proper link. If not proper link, re-nav to error page. 
     async function loadReceipt() {
@@ -42,22 +66,6 @@ export default function EditorPage() {
         loadReceipt()
     }, []
     )
-
-    useEffect(() => {
-        const refresh = () => loadReceipt()
-      
-        const onVis = () => {
-          if (document.visibilityState === "visible") refresh()
-        }
-      
-        window.addEventListener("focus", refresh);
-        document.addEventListener("visibilitychange", onVis)
-      
-        return () => {
-          window.removeEventListener("focus", refresh);
-          document.removeEventListener("visibilitychange", onVis)
-        };
-      }, [loadReceipt])
     // need to add logic to update receipts subtotals and stuff. Also need to have it so it persists between refreshes but like probably shouldnt send the api call to change it for every little change?
     function handleQtyChange(newQty,item) {
         setItems((prev) => prev.map(i => i.id == item.id ? {...i, quantity:newQty} : i))
@@ -65,7 +73,9 @@ export default function EditorPage() {
     function handleNameChange(newName,item) {
         setItems((prev) => prev.map(i => i.id == item.id ? {...i, name:newName} : i))
     }
+    // currently doesnt account for the tax % but i'd rather allow the user to directly edit the tax
     function handlePriceChange(newPrice,item) {
+        setReceipt((prev) => ({...prev,subtotal:Number(prev.subtotal)-Number(item.line_total)+Number(newPrice), total:Number(prev.total)-Number(item.line_total)+Number(newPrice)}))
         setItems((prev) => prev.map(i => i.id == item.id ? {...i, line_total:newPrice} : i))
     }
     function renderItems() {
@@ -106,9 +116,10 @@ export default function EditorPage() {
             <div id="items-div">
             </div>
             <h4>Creators Name:</h4>
-            <input type="text"/>
+            <input type="text" value={creatorName} onChange={e => setCreatorName(e.target.value)}/>
             <h4>Venmo Handle For Recipient:{}</h4>
             <input type="text" value={venmoHandle} onChange={e => setVenmoHandle(e.target.value)}/>
+            <button onClick={updateReceipt}>Save Receipt</button>
         </section>
     )
 }
