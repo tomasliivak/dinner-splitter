@@ -79,7 +79,7 @@ export default function EditorPage() {
         setItems((prev) => prev.map(i => i.id == item.id ? {...i, line_total:newPrice} : i))
     }
     function renderItems() {
-        return items.map((item) => <EditorItem key={item.id} item={item} qtyChange={handleQtyChange} nameChange={handleNameChange} priceChange={handlePriceChange}/>)
+        return items.map((item,index) => <EditorItem key={item.id} item={item} qtyChange={handleQtyChange} nameChange={handleNameChange} priceChange={handlePriceChange} index={index}/>)
     }
     return (
         <section className="receipt-page">

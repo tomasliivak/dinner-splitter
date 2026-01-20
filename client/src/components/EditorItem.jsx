@@ -8,9 +8,21 @@ export default function EditorItem(props) {
     
     return (
         <div className="editor-item">
-            <input type="number" value={props.item.quantity} onChange={e => props.qtyChange(e.target.value,props.item)} />
-            <input type="text" value={props.item.name} onChange={e => props.nameChange(e.target.value,props.item)} />
-            <input type="number" value={props.item.line_total} onChange={e => props.priceChange(e.target.value,props.item)} />
+            <p>{props.index+1}</p>
+            <div>
+                <div className="e-item-field">
+                    <input type="number" value={props.item.quantity} onChange={e => props.qtyChange(e.target.value,props.item)} />
+                    <p>qty</p>
+                </div>
+                <div className="e-item-field">
+                    <input type="text" value={props.item.name} onChange={e => props.nameChange(e.target.value,props.item)} />
+                    <p>item name</p>
+                </div>
+                <div className="e-item-field">
+                    <input type="number" value={props.item.line_total} onChange={e => props.priceChange(e.target.value,props.item)} />
+                    <p>price</p>
+                </div>
+            </div>
         </div>
         
     )

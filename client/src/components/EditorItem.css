@@ -1,13 +1,32 @@
-.editor-item {
+.editor-item > div{
     display:flex;
-}
-
-.editor-item > input{
-    background: white;
-    text-decoration: none;
-    border: 1px transparent;
     align-items: center;
     justify-content: left;
-    margin: 2px;
-    width:100px;
+}
+.editor-item {
+    background:#EF3D50;
+    border-radius: 5px;
+    margin-bottom: 8px;
+    padding-block: 8px;
+    padding-inline: 15px;
+}
+.editor-item > p {
+    color:rgb(255, 213, 213)
+}
+.e-item-field {
+    display:flex;
+    justify-content:center;
+    flex-direction: column;
+}
+.e-item-field > input{
+    background: #b42e3b;
+    text-decoration: none;
+    border: 1px transparent;
+    color:white;
+    border-radius: 5px;
+}
+
+.e-item-field > p {
+    color: rgb(255, 213, 213);
+    font-size: 10px
 }
