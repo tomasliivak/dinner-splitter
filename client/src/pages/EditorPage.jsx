@@ -57,6 +57,8 @@ export default function EditorPage() {
     // need to add check for a proper link. If not proper link, re-nav to error page. 
     async function loadReceipt() {
         const data = await getReceipt()
+            // potentially a problem if the llm returns like a decimal quantity for whatever reason
+            data.items = data.items.map(item => ({...item,quantity:Math.floor(item.quantity)}))
             setItems(data.items)
             setReceipt(data.receipt)
             setTaxPercent(data.receipt.tax/data.receipt.subtotal)
@@ -68,8 +70,25 @@ export default function EditorPage() {
     )
     // need to add logic to update receipts subtotals and stuff. Also need to have it so it persists between refreshes but like probably shouldnt send the api call to change it for every little change?
     function handleQtyChange(newQty,item) {
-        setItems((prev) => prev.map(i => i.id == item.id ? {...i, quantity:newQty} : i))
+        
+        setItems((prev) => prev.map(i => i.id == item.id ? {...i, quantity:newQty ? newQty: undefined} : i))
     }
+    function handleQtyCommit(raw, item) {
+        let committed;
+      
+        if (raw === "" || raw === null) {
+          return undefined
+        } else {
+          const n = Number(raw);
+          committed = String(Math.max(0, Math.floor(n || 0)));
+        }
+      
+        setItems(prev =>
+          prev.map(i =>
+            i.id === item.id ? { ...i, quantity: committed } : i
+          )
+        )
+      }
     function handleNameChange(newName,item) {
         setItems((prev) => prev.map(i => i.id == item.id ? {...i, name:newName} : i))
     }
@@ -79,9 +98,13 @@ export default function EditorPage() {
         setItems((prev) => prev.map(i => i.id == item.id ? {...i, line_total:newPrice} : i))
     }
     function renderItems() {
-        return items.map((item,index) => <EditorItem key={item.id} item={item} qtyChange={handleQtyChange} nameChange={handleNameChange} priceChange={handlePriceChange} index={index}/>)
+        return items.map((item,index) => <EditorItem key={item.id} item={item} qtyChange={handleQtyChange} nameChange={handleNameChange} priceChange={handlePriceChange} index={index} qtyCommit={handleQtyCommit}/>)
     }
     return (
+        <form onSubmit={(e) => {
+            e.preventDefault();
+            updateReceipt();
+            }}>
         <section className="receipt-page">
             <div id="column-receipt-topper">
                 <div id="receipt-top">
@@ -116,10 +139,20 @@ export default function EditorPage() {
             <div id="items-div">
             </div>
             <h4>Creators Name:</h4>
-            <input type="text" value={creatorName} onChange={e => setCreatorName(e.target.value)}/>
+            <input type="text" value={creatorName} onChange={e => setCreatorName(e.target.value)}
+            onKeyDown={e => {
+                if (e.key === "Enter") e.preventDefault();
+              }}
+            />
             <h4>Venmo Handle For Recipient:{}</h4>
-            <input type="text" value={venmoHandle} onChange={e => setVenmoHandle(e.target.value)}/>
-            <button onClick={updateReceipt}>Save Receipt</button>
+            <input type="text" value={venmoHandle} onChange={e => setVenmoHandle(e.target.value)}
+            onKeyDown={e => {
+                if (e.key === "Enter") e.preventDefault();
+              }}
+            required
+            />
+            <button type="submit">Save Receipt</button>
         </section>
+        </form>
     )
 }

@@ -5,21 +5,39 @@ export default function EditorItem(props) {
     // props.setItems((prev) => prev.map(item => item.id=props.item.id ? {...item, qty:e.target.value} : item)) example for changing quantity
     // value = {props.item.qty}
     // type = "number"
-    
     return (
         <div className="editor-item">
             <p>{props.index+1}</p>
             <div>
-                <div className="e-item-field">
-                    <input type="number" value={props.item.quantity} onChange={e => props.qtyChange(e.target.value,props.item)} />
+                <div className="e-item-field qty">
+                    <input type="number" value={props.item.quantity} onChange={e => props.qtyChange(e.target.value,props.item)} 
+                    onKeyDown={e => {
+                        if (e.key === "Enter") e.preventDefault();
+                      }}
+                    required
+                    onBlur={e => props.qtyCommit(e.target.value, props.item)}
+                    />
                     <p>qty</p>
                 </div>
-                <div className="e-item-field">
-                    <input type="text" value={props.item.name} onChange={e => props.nameChange(e.target.value,props.item)} />
+                <div className="e-item-field name">
+                    <input type="text" value={props.item.name} onChange={e => props.nameChange(e.target.value,props.item)} 
+                    onKeyDown={e => {
+                        if (e.key === "Enter") e.preventDefault();
+                      }}
+                    required
+                    />
                     <p>item name</p>
                 </div>
-                <div className="e-item-field">
-                    <input type="number" value={props.item.line_total} onChange={e => props.priceChange(e.target.value,props.item)} />
+                <div className="e-item-field price">
+                    <div>
+                        <p>$</p>
+                        <input type="number" value={props.item.line_total} onChange={e => props.priceChange(e.target.value,props.item)} 
+                        onKeyDown={e => {
+                            if (e.key === "Enter") e.preventDefault();
+                        }}
+                        required
+                        />
+                    </div>
                     <p>price</p>
                 </div>
             </div>

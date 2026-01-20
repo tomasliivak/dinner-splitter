@@ -1,3 +1,4 @@
+/* This is a mess and I need to change the classnames and targetting to be more readable*/
 .editor-item > div{
     display:flex;
     align-items: center;
@@ -5,13 +6,15 @@
 }
 .editor-item {
     background:#EF3D50;
-    border-radius: 5px;
+    border-radius: 8px;
     margin-bottom: 8px;
-    padding-block: 8px;
-    padding-inline: 15px;
+    padding-block: 13px;
+    padding-inline: 13px;
 }
 .editor-item > p {
-    color:rgb(255, 213, 213)
+    color:white;
+    margin-bottom: 4px;
+    font-size: 14px
 }
 .e-item-field {
     display:flex;
@@ -21,11 +24,62 @@
 .e-item-field > input{
     background: #b42e3b;
     text-decoration: none;
-    border: 1px transparent;
-    color:white;
+    border: 2px solid transparent;
+    color:rgb(255, 213, 213);
     border-radius: 5px;
+    padding-block: 7px;
+    padding-inline: 10px;
+    font-size: 15px;
+    width:100%;
+}
+.e-item-field > div{
+    background: #b42e3b;
+    text-decoration: none;
+    border: 2px solid transparent;
+    color:rgb(255, 213, 213);
+    border-radius: 5px;
+    width:100%;
+    display: flex;
+    align-items: center;
+}
+.e-item-field > div > p{
+    font-size: 12;
+    padding-left: 10px;
+    margin-bottom: 1px;
+}
+.e-item-field > div > input {
+    background: #b42e3b;
+    text-decoration: none;
+    border: 2px solid transparent;
+    color:rgb(255, 213, 213);
+    border-radius: 5px;
+    font-size: 15px;
+    width:100%;
+    padding-block: 7px;
+    padding-right: 10px;
+    padding-left: 3px;
 }
 
+.e-item-field > input:focus-visible{
+    border: 2px solid #ff7d8a;
+    outline: none
+}
+.e-item-field > div > input:focus-visible{
+    border: 2px solid #ff7d8a;
+    outline: none
+}
+
+.qty { 
+    flex: 0 0 60px;
+    margin-right: 15px;
+}     
+.name { 
+    flex: 1 1 auto; 
+    margin-right: 30px;
+}   
+.price { 
+    flex: 0 0 100px; 
+} 
 .e-item-field > p {
     color: rgb(255, 213, 213);
     font-size: 10px

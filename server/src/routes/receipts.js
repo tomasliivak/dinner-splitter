@@ -61,7 +61,7 @@ receiptsRouter.post(
             
             const insertedItems = []
             const items = receipt.line_items
-
+            
             for (const item of items) {
                 if (item.quantity == null) {
                     item.quantity = 1

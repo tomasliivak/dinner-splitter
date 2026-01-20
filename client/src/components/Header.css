@@ -6,7 +6,18 @@ header {
     justify-content: space-between;
     align-items: center;
 }
-
+header > a{
+    color:white;
+    text-decoration: none;
+    margin: 2px;
+    padding-inline: 7px;
+    padding-block: 3px;
+    border-radius: 4px;
+}
+header > a:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
 @media (min-width: 900px) {
     header {
     border-top-left-radius: 12px;
