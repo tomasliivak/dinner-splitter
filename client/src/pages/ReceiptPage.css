@@ -81,3 +81,16 @@
     text-decoration: none;
     border: 1px solid transparent;
 }
+
+.share-btn {
+    margin-left:auto;
+    padding: 3px 10px 3px 10px;
+    text-align: center;
+    font-size: 15px;
+    border-radius: 20px;
+    background: #EF3D50;
+    color: white;
+    text-decoration: none;
+    border: 1px solid transparent;
+    margin-bottom: 10px;
+}

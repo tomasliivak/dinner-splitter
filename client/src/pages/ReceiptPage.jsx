@@ -29,6 +29,7 @@ export default function ReceiptPage() {
       })
     // get the receipt data and the receipt items
     // Note to later self: Honestly not particularly sure if the tip math is accurate/if the tip is being counted towards the total by the llm. e.i need to do testing with receipts that have tip written
+    // Need to add better looking share button
     async function getReceipt() {
         const res = await fetch(`http://localhost:3000/api/receipts/retrieve?${params.toString()}`, {
             method: "GET"
@@ -185,7 +186,24 @@ export default function ReceiptPage() {
         let newClaimed = claimedItems.filter(claim => claim.id !== data.removed.id)
         setClaimedItems(newClaimed)
     }
-
+    async function handleShare() {
+        const url = window.location.href;
+      
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              title: `Split this receipt from ${receipt.merchant_name}`,
+              text: "Join and claim your items:",
+              url
+            });
+            return;
+          } catch {}
+        }
+      
+        // fallback
+        navigator.clipboard.writeText(url);
+      }
+      
     return (
         <section className="receipt-page">
             <div id="column-receipt-topper">
@@ -196,6 +214,9 @@ export default function ReceiptPage() {
                         <p>{receipt ? "Created At: " + receipt.created_at: "Loading"}</p>
                         <p>Venmo Handle: {receipt ? receipt.venmo_handle: "Loading"}</p>
                     </div>
+                    <button className="share-btn" onClick={handleShare}>
+                    Share Receipt
+                    </button>
                 </div>
             </div>
             <h4>Click to claim your items:</h4>

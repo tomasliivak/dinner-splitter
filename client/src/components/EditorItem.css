@@ -61,12 +61,19 @@
 }
 
 .e-item-field > input:focus-visible{
-    border: 2px solid #ff7d8a;
+    border: 3px solid #ffa2ab;
     outline: none
 }
+.e-item-field > input::placeholder {
+    color: rgb(255, 187, 187);
+}
 .e-item-field > div > input:focus-visible{
-    border: 2px solid #ff7d8a;
+    border: 3px solid #ffa2ab;
     outline: none
+}
+
+.e-item-field > div > input::placeholder {
+    color: rgb(255, 187, 187);
 }
 
 .qty { 
@@ -82,5 +89,7 @@
 } 
 .e-item-field > p {
     color: rgb(255, 213, 213);
-    font-size: 10px
+    font-size: 10px ;
+    margin-left: 3px;
+    margin-top: 3px;
 }

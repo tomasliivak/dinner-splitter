@@ -4,6 +4,7 @@ import ReceiptIcon from "../components/ReceiptIcon.jsx"
 import EditorItem from "../components/EditorItem.jsx"
 import { useNavigate } from "react-router-dom"
 import "./ReceiptPage.css"
+import "./EditorPage.css"
 
 // Editor Page Notes: Need to add venmo handle validation. Make page look good as well...
 export default function EditorPage() {
@@ -74,13 +75,13 @@ export default function EditorPage() {
         setItems((prev) => prev.map(i => i.id == item.id ? {...i, quantity:newQty ? newQty: undefined} : i))
     }
     function handleQtyCommit(raw, item) {
-        let committed;
+        let committed
       
         if (raw === "" || raw === null) {
           return undefined
         } else {
-          const n = Number(raw);
-          committed = String(Math.max(0, Math.floor(n || 0)));
+          const n = Number(raw)
+          committed = String(Math.max(0, Math.floor(n || 0)))
         }
       
         setItems(prev =>
@@ -92,18 +93,60 @@ export default function EditorPage() {
     function handleNameChange(newName,item) {
         setItems((prev) => prev.map(i => i.id == item.id ? {...i, name:newName} : i))
     }
-    // currently doesnt account for the tax % but i'd rather allow the user to directly edit the tax
     function handlePriceChange(newPrice,item) {
         setReceipt((prev) => ({...prev,subtotal:Number(prev.subtotal)-Number(item.line_total)+Number(newPrice), total:Number(prev.total)-Number(item.line_total)+Number(newPrice)}))
         setItems((prev) => prev.map(i => i.id == item.id ? {...i, line_total:newPrice} : i))
     }
+    // need to add blur/commit handling
+    function handleTaxChange(newTax) {
+        setReceipt((prev) => ({...prev,tax:newTax, total:Number(prev.total)-Number(prev.tax)+Number(newTax)}))
+        setTaxPercent(Number(newTax)/Number(receipt.subtotal))
+    }
+    function handleTaxCommit(raw) {
+        if (Number(raw) == 0) {
+            setReceipt((prev) => ({...prev,tax:Number(raw), total:Number(prev.total)-Number(prev.tax)+Number(raw)}))
+        }
+        else {
+            let rounded = Math.round(raw*100)/100
+            setReceipt((prev) => ({...prev,tax:rounded, total:Number(prev.total)-Number(prev.tax)+Number(raw)}))
+        }
+      }
+    function handleTipChange(newTip) {
+        setReceipt((prev) => ({...prev,tip:newTip, total:Number(prev.total)-Number(prev.tip)+Number(newTip)}))
+        setTipPercent(Number(newTip)/Number(receipt.subtotal))
+    }
+    function handleTipCommit(raw) {
+        if (Number(raw) == 0) {
+            setReceipt((prev) => ({...prev,tip:Number(raw), total:Number(prev.total)-Number(prev.tip)+Number(raw)}))
+        }
+        else {
+            let rounded = Math.round(raw*100)/100
+            setReceipt((prev) => ({...prev,tip:rounded, total:Number(prev.total)-Number(prev.tip)+Number(raw)}))
+        }
+      }
+    function handlePriceCommit(raw, item) {
+        let committed
+      
+        if (raw === "" || raw === null) {
+          return undefined
+        } else {
+          const n = Number(raw)
+          committed = Math.round(n*100)/100
+        }
+      
+        setItems(prev =>
+          prev.map(i =>
+            i.id === item.id ? { ...i, line_total: committed } : i
+          )
+        )
+      }
     function renderItems() {
-        return items.map((item,index) => <EditorItem key={item.id} item={item} qtyChange={handleQtyChange} nameChange={handleNameChange} priceChange={handlePriceChange} index={index} qtyCommit={handleQtyCommit}/>)
+        return items.map((item,index) => <EditorItem key={item.id} item={item} qtyChange={handleQtyChange} nameChange={handleNameChange} priceChange={handlePriceChange} index={index} qtyCommit={handleQtyCommit} priceCommit={handlePriceCommit}/>)
     }
     return (
         <form onSubmit={(e) => {
-            e.preventDefault();
-            updateReceipt();
+            e.preventDefault()
+            updateReceipt()
             }}>
         <section className="receipt-page">
             <div id="column-receipt-topper">
@@ -115,7 +158,7 @@ export default function EditorPage() {
                     </div>
                 </div>
             </div>
-            <h4>Review Your Items</h4>
+            <h4 className="editor-title">Review Your Receipt</h4>
             {items ? renderItems() : undefined}
             <div id="items-div">
             </div>
@@ -124,13 +167,34 @@ export default function EditorPage() {
                 <h4>Subtotal:</h4>
                 <p>${receipt ? Math.round((receipt.subtotal)*100)/100: "subtotal"}</p>
             </div>
-            <div className="totals-item">
+            {/* Honestly this part is kinda ugly but its okay for the mvp. Looked a Lot better as white text so less red*/}
+            <div className="totals-item edit">
                 <h4>Tax:</h4>
-                <p>${receipt ? Math.round((receipt.tax)*100)/100: "tax"}</p>
+                <div>
+                    <p>$</p>
+                    <input type="number" value={receipt?.tax ?? ""}
+                    onChange={e => handleTaxChange(e.target.value)}
+                    onKeyDown={e => {
+                        if (e.key === "Enter") e.preventDefault()
+                    }}
+                    placeholder="TAX"
+                    onBlur={e => handleTaxCommit(e.target.value)}
+                    />
+                </div>
             </div>
-            <div className="totals-item">
+            <div className="totals-item edit">
                 <h4>Tip:</h4>
-                <p>${receipt ? receipt.tip ? Math.round((receipt.tip)*100)/100: "0": undefined}</p>
+                <div>
+                <p>$</p>
+                    <input type="number" value={receipt?.tip ?? ""}
+                    onChange={e => handleTipChange(e.target.value)}
+                    onKeyDown={e => {
+                        if (e.key === "Enter") e.preventDefault()
+                    }}
+                    placeholder="TIP"
+                    onBlur={e => handleTipCommit(e.target.value)}
+                    />
+                </div>
             </div>
             <div className="totals-item" id="last-totals-item">
                 <h4>Balance Due:</h4>
@@ -138,20 +202,26 @@ export default function EditorPage() {
             </div>
             <div id="items-div">
             </div>
-            <h4>Creators Name:</h4>
-            <input type="text" value={creatorName} onChange={e => setCreatorName(e.target.value)}
-            onKeyDown={e => {
-                if (e.key === "Enter") e.preventDefault();
-              }}
-            />
-            <h4>Venmo Handle For Recipient:{}</h4>
-            <input type="text" value={venmoHandle} onChange={e => setVenmoHandle(e.target.value)}
-            onKeyDown={e => {
-                if (e.key === "Enter") e.preventDefault();
-              }}
-            required
-            />
-            <button type="submit">Save Receipt</button>
+            <div className="editor-input-div">
+                <input type="text" value={creatorName} onChange={e => setCreatorName(e.target.value)}
+                onKeyDown={e => {
+                    if (e.key === "Enter") e.preventDefault()
+                }}
+                placeholder="Enter Creators Name"
+                />
+                <p>Creator</p>
+            </div>
+            <div className="editor-input-div">
+                <input type="text" value={venmoHandle} onChange={e => setVenmoHandle(e.target.value)}
+                onKeyDown={e => {
+                    if (e.key === "Enter") e.preventDefault()
+                }}
+                required
+                placeholder="Enter the Venmo Handle"
+                />
+                <p>Venmo Handle</p>
+            </div>
+            <button className="save-button" type="submit">Save Receipt</button>
         </section>
         </form>
     )
