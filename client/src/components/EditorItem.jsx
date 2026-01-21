@@ -7,7 +7,10 @@ export default function EditorItem(props) {
     // type = "number"
     return (
         <div className="editor-item">
-            <p>{props.index+1}</p>
+            <div className="top-editor-item">
+                <p>{props.index+1}</p>
+                <button className="txn-delete-btn" type="button" onClick={e => props.deleteItem(props.item)}>x</button>
+            </div>
             <div>
                 <div className="e-item-field qty">
                     <input type="number" value={props.item.quantity} onChange={e => props.qtyChange(e.target.value,props.item)} 

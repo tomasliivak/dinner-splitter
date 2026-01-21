@@ -7,6 +7,7 @@ import "./ReceiptPage.css"
 import "./EditorPage.css"
 
 // Editor Page Notes: Need to add venmo handle validation. Make page look good as well...
+// Some of the stuff (like the delete button) may not be mobile sized(too small to press)
 export default function EditorPage() {
     // this probably would break if something put in a random url for now. 
     // also would break if some just went to /r with nothing else with it
@@ -18,7 +19,11 @@ export default function EditorPage() {
     const [tipPercent, setTipPercent] = useState(0)
     const [venmoHandle, setVenmoHandle] = useState("")
     const [creatorName, setCreatorName] = useState("")
+    const [create, setCreate] = useState(false)
     const [ready, setReady] = useState(false)
+    const [newQty, setNewQty] = useState("")
+    const [newName, setNewName] = useState("")
+    const [newPrice, setNewPrice] = useState("")
     const navigate = useNavigate()
 
     const params = new URLSearchParams({
@@ -33,6 +38,7 @@ export default function EditorPage() {
         )
         return res.json()
     }
+    // need to add protection against negative quantities
     async function updateReceipt() {
         const res = await fetch("http://localhost:3000/api/receipts/update", {
             method: "PATCH",
@@ -47,6 +53,37 @@ export default function EditorPage() {
             })
         })
         setReady(true)
+    }
+    /*these are technically not done. Need to also edit the receipt values 
+    in addition to the item values on the backend side cus currently the receipt values dont get changed
+    and need to update them all at the same time in a client mode or potentially could come out of line
+    with eachother
+    */
+    async function deleteItem(item) {
+        const res = await fetch("http://localhost:3000/api/receipts/items", {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                item:item
+            })
+        })
+        const data = await res.json()
+        setItems(prev => prev.filter(oldItem => oldItem.id != data.removed.id))
+    }
+    async function createItem(item) {
+        const res = await fetch("http://localhost:3000/api/receipts/items", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                item:item
+            })
+        })
+        const data = await res.json()
+        setItems(prev => ([...prev, data.added]))
     }
     useEffect(() => {
         if (ready) {
@@ -141,7 +178,11 @@ export default function EditorPage() {
         )
       }
     function renderItems() {
-        return items.map((item,index) => <EditorItem key={item.id} item={item} qtyChange={handleQtyChange} nameChange={handleNameChange} priceChange={handlePriceChange} index={index} qtyCommit={handleQtyCommit} priceCommit={handlePriceCommit}/>)
+        return items.map((item,index) => <EditorItem key={item.id} 
+        item={item} qtyChange={handleQtyChange} nameChange={handleNameChange} 
+        priceChange={handlePriceChange} index={index} qtyCommit={handleQtyCommit} 
+        priceCommit={handlePriceCommit} deleteItem={deleteItem}
+        />)
     }
     return (
         <form onSubmit={(e) => {
@@ -160,6 +201,43 @@ export default function EditorPage() {
             </div>
             <h4 className="editor-title">Review Your Receipt</h4>
             {items ? renderItems() : undefined}
+            {create ? 
+            <div className="create-div">
+                <div>
+                    <h4>Create Item</h4>
+                    <button type="button" onClick={e => setCreate(false)}>Cancel</button>
+                </div>
+                <div>
+                    <div className="create-field qty">
+                        <input type="number"
+                        onChange={e => setNewQty(e.target.value)}
+                        />
+                        <p>qty</p>
+                    </div>
+                    <div className="create-field name">
+                        <input type="text" 
+                        onChange={e => setNewName(e.target.value)}
+                        />
+                        <p>item name</p>
+                    </div>
+                    <div className="create-field price">
+                        <input type="number"
+                        onChange={e => setNewPrice(e.target.value)}
+                        />
+                        <p>price</p>
+                    </div>
+                </div>
+                <button type="button" 
+                onClick={(e => {createItem({quantity: Number(newQty), name: newName, line_total: Number(newPrice), receipt_id:receipt.id})
+                setNewQty("")
+                setNewName("")
+                setNewPrice("")
+                setCreate(false)
+                }
+                )}>Confirm</button>
+            </div>
+            : 
+            <button id="add-item" type="button" onClick={e => (setCreate(true))}>Add Item</button>}
             <div id="items-div">
             </div>
             <h3 id="receipt-totals-header">Receipt Totals</h3>

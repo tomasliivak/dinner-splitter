@@ -21,7 +21,7 @@ function hashToken(token) {
     return crypto
       .createHash("sha256")
       .update(token)
-      .digest("hex");
+      .digest("hex")
   }
 
 receiptsRouter.post(
@@ -235,7 +235,7 @@ receiptsRouter.post("/unclaim",
             `
                 DELETE FROM claims
                 WHERE receipt_item_id = $1
-                RETURNING *;
+                RETURNING *
             `, [item.id]
         )
         return res.json({removed: claims.rows[0]})
@@ -295,5 +295,42 @@ receiptsRouter.patch("/update",
         } finally {
             client.release()
         }
+    }
+)
+
+receiptsRouter.delete("/items",
+    async(req,res) => {
+        const {item} = req.body
+        const removed = await pool.query(
+            `
+            DELETE FROM receipt_items
+            WHERE id = $1
+            RETURNING *
+            `, [item.id]
+        )
+        return res.json({removed:removed.rows[0]})
+    }
+)
+receiptsRouter.post("/items",
+    async(req,res) => {
+        const {item} = req.body
+        item.line_total = Math.round(item.line_total*100)/100
+        item.quantity = Math.round(item.quantity)
+        if (item.quantity < 1) {
+            return res.status(400).json({error:"Invalid Quantity"})
+        }
+        if (item.line_total < 1) {
+            return res.status(400).json({error:"Invalid Price"})
+        }
+        const added = await pool.query(
+            `
+            INSERT INTO receipt_items
+              (receipt_id, name, quantity, unit_price, line_total)
+            VALUES ($1, $2, $3, $4, $5)
+            RETURNING *
+            `,
+            [item.receipt_id, item.name, item.quantity, item.line_total, item.line_total]
+          )
+        return res.json({added:added.rows[0]})
     }
 )

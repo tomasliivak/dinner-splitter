@@ -4,17 +4,23 @@
     align-items: center;
     justify-content: left;
 }
+/* #EF3D50 (og background red) rgb(255, 213, 213) darker red inputs: #b42e3b*/
 .editor-item {
-    background:#EF3D50;
+    background:#f9f9f9;
     border-radius: 8px;
     margin-bottom: 8px;
     padding-block: 13px;
     padding-inline: 13px;
 }
-.editor-item > p {
-    color:white;
-    margin-bottom: 4px;
-    font-size: 14px
+.top-editor-item > p {
+    color:black;
+    font-size: 14px;
+    margin-right: auto;
+}
+.top-editor-item {
+    display: flex;
+    justify-content:space-between;
+    margin-bottom: 8px;
 }
 .e-item-field {
     display:flex;
@@ -22,10 +28,10 @@
     flex-direction: column;
 }
 .e-item-field > input{
-    background: #b42e3b;
+    background: #e6e6e6;
     text-decoration: none;
     border: 2px solid transparent;
-    color:rgb(255, 213, 213);
+    color:black;
     border-radius: 5px;
     padding-block: 7px;
     padding-inline: 10px;
@@ -33,10 +39,10 @@
     width:100%;
 }
 .e-item-field > div{
-    background: #b42e3b;
+    background: #e6e6e6;
     text-decoration: none;
     border: 2px solid transparent;
-    color:rgb(255, 213, 213);
+    color:black;
     border-radius: 5px;
     width:100%;
     display: flex;
@@ -48,10 +54,10 @@
     margin-bottom: 1px;
 }
 .e-item-field > div > input {
-    background: #b42e3b;
+    background: #e6e6e6;
     text-decoration: none;
     border: 2px solid transparent;
-    color:rgb(255, 213, 213);
+    color:black;
     border-radius: 5px;
     font-size: 15px;
     width:100%;
@@ -61,19 +67,19 @@
 }
 
 .e-item-field > input:focus-visible{
-    border: 3px solid #ffa2ab;
+    border: 3px solid #EF3D50;
     outline: none
 }
 .e-item-field > input::placeholder {
-    color: rgb(255, 187, 187);
+    color: rgb(149, 149, 149)
 }
 .e-item-field > div > input:focus-visible{
-    border: 3px solid #ffa2ab;
+    border: 3px solid #EF3D50;
     outline: none
 }
 
 .e-item-field > div > input::placeholder {
-    color: rgb(255, 187, 187);
+    color: rgb(149, 149, 149);
 }
 
 .qty { 
@@ -88,8 +94,21 @@
     flex: 0 0 100px; 
 } 
 .e-item-field > p {
-    color: rgb(255, 213, 213);
+    color: black;
     font-size: 10px ;
     margin-left: 3px;
     margin-top: 3px;
+}
+.txn-delete-btn {
+    background: #EF3D50;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
