@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import  LoadingDots from "../components/LoadingDots"
+import receiptMockup from "../assets/receipt-mockup.png"
 
 import "./Home.css"
 export default function Home() {
@@ -77,15 +78,16 @@ export default function Home() {
 
     return (
         <section id="home">
-            
-                <h1>Split your receipt in seconds</h1>
-                <h2>Upload a photo, claim items, pay friends</h2>
+                <div className="home-text">
+                    <h1>Split your receipt in seconds</h1>
+                    <h2>Upload a photo, claim items, pay friends</h2>
+                </div>
+                <img src={receiptMockup} alt="Split a receipt by tapping items and paying with Venmo" className="hero-phone"/>
                 <div className="upload-cta">
                     {loading && <LoadingDots/>}
                     <button onClick={() => fileInputRef.current.click()}>
                         Upload Receipt
-                    </button>
-
+                </button>
                     <input
                     ref={fileInputRef}
                     type="file"

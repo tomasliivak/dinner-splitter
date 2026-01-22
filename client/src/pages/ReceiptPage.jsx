@@ -204,72 +204,87 @@ export default function ReceiptPage() {
         // fallback
         navigator.clipboard.writeText(url);
       }
-      
+      // remove the outer div depending what I do
     return (
-        <section className="receipt-page">
-            <div id="column-receipt-topper">
-                <div id="receipt-top">
-                    <ReceiptIcon size={50} className="receipt-svg"/>
-                    <div>
-                        <h4>{receipt ? receipt.merchant_name: "Merchant Name"}</h4>
-                        <p>{receipt ? "Created At: " + receipt.created_at: "Loading"}</p>
-                        <p>Venmo Handle: {receipt ? receipt.venmo_handle: "Loading"}</p>
+        <div>
+            {receipt ? receipt.creator_id == participantId ?
+                <div className="context-header">
+                    <div className="context-text-div">
+                        <h4>Receipt Ready</h4>
+                        <p>Share this link with friends so they can claim their items and pay you.</p>
                     </div>
-                    <button className="share-btn" onClick={handleShare}>
-                    Share Receipt
-                    </button>
+                    <button className="share-btn" onClick={handleShare}>Share with friends</button>
+                </div> 
+                : 
+                <div className="context-header">
+                    <div className="context-text-div">
+                        <h4>You've Been Invited To Split A Receipt </h4>
+                        <p>Claim your items and pay with venmo</p>
+                    </div>
                 </div>
-            </div>
-            <h4>Click to claim your items:</h4>
-            {items ? renderItems() : undefined}
-            <button onClick={() => {
-                setShowClaimed((prev) => !prev)
-            }} id="show-claimed-btn">
-            See Claimed Items {showClaimed ? "▾" : "▸" }
-            </button>
-            {showClaimed ? <p id="remove-header">Click on item to remove claim</p> : undefined}
-            {showClaimed ? renderClaimedItems() : undefined}
-            <div id="items-div">
-            </div>
-            <h3 id="receipt-totals-header">Remaining Receipt Totals</h3>
-            <div className="totals-item">
-                <h4>Subtotal:</h4>
-                <p>${receipt ? Math.round((receipt.subtotal-claimedSubtotal)*100)/100: "subtotal"}</p>
-            </div>
-            <div className="totals-item">
-                <h4>Tax:</h4>
-                <p>${receipt ? Math.round((receipt.tax-(claimedSubtotal*taxPercent))*100)/100: "tax"}</p>
-            </div>
-            <div className="totals-item">
-                <h4>Tip:</h4>
-                <p>${receipt ? receipt.tip ? Math.round((receipt.tip-(claimedSubtotal*tipPercent))*100)/100: "0": undefined}</p>
-            </div>
-            <div className="totals-item" id="last-totals-item">
-                <h4>Balance Due:</h4>
-                <p>${receipt ? Math.round((receipt.total-(claimedSubtotal + claimedSubtotal*taxPercent + claimedSubtotal*tipPercent))*100)/100: "total"}</p>
-            </div>
-            <div id="items-div">
-            </div>
-            <h3 id="receipt-totals-header">Review Selected Items Totals</h3>
-            <div className="totals-item">
-                <h4>Subtotal:</h4>
-                <p>${activeItems ? Math.round(activeItemsSubtotal*100)/100 : undefined}</p>
-            </div>
-            <div className="totals-item">
-                <h4>Tax:</h4>
-                <p>${activeItems ? Math.round((activeItemsSubtotal*taxPercent)*100)/100 : undefined}</p>
-            </div>
-            <div className="totals-item">
-                <h4>Tip:</h4>
-                <p>${activeItems ? Math.round((activeItemsSubtotal*tipPercent)*100)/100 : undefined}</p>
-            </div>
-            <div className="totals-item" id="last-totals-item">
-                <h4>Total:</h4>
-                <p>${activeItems ? Math.round((activeItemsSubtotal + activeItemsSubtotal*taxPercent + activeItemsSubtotal*tipPercent)*100)/100 : undefined}</p>
-            </div>
-            <button disabled={activeItems.length < 1} onClick={() => {
-                payClick()
-            }} id = "venmo-btn">Pay With Venmo</button>
-        </section>
+                : undefined}
+            <section className="receipt-page">
+                <div id="column-receipt-topper">
+                    <div id="receipt-top">
+                        <ReceiptIcon size={50} className="receipt-svg"/>
+                        <div>
+                            <h4>{receipt ? receipt.merchant_name: "Merchant Name"}</h4>
+                            <p>{receipt ? "Created At: " + receipt.created_at: "Loading"}</p>
+                            <p>Venmo Handle: {receipt ? receipt.venmo_handle: "Loading"}</p>
+                        </div>
+                    </div>
+                </div>
+                <h4>Click to claim your items:</h4>
+                {items ? renderItems() : undefined}
+                <button onClick={() => {
+                    setShowClaimed((prev) => !prev)
+                }} id="show-claimed-btn">
+                See Claimed Items {showClaimed ? "▾" : "▸" }
+                </button>
+                {showClaimed ? <p id="remove-header">Click on item to remove claim</p> : undefined}
+                {showClaimed ? renderClaimedItems() : undefined}
+                <div id="items-div">
+                </div>
+                <h3 id="receipt-totals-header">Remaining Receipt Totals</h3>
+                <div className="totals-item">
+                    <h4>Subtotal:</h4>
+                    <p>${receipt ? (Math.round((receipt.subtotal-claimedSubtotal)*100)/100).toFixed(2): "subtotal"}</p>
+                </div>
+                <div className="totals-item">
+                    <h4>Tax:</h4>
+                    <p>${receipt ? (Math.round((receipt.tax-(claimedSubtotal*taxPercent))*100)/100).toFixed(2): "tax"}</p>
+                </div>
+                <div className="totals-item">
+                    <h4>Tip:</h4>
+                    <p>${receipt ? receipt.tip ? (Math.round((receipt.tip-(claimedSubtotal*tipPercent))*100)/100).toFixed(2): "0": undefined}</p>
+                </div>
+                <div className="totals-item" id="last-totals-item">
+                    <h4>Balance Due:</h4>
+                    <p>${receipt ?(Math.round((receipt.total-(claimedSubtotal + claimedSubtotal*taxPercent + claimedSubtotal*tipPercent))*100)/100).toFixed(2): "total"}</p>
+                </div>
+                <div id="items-div">
+                </div>
+                <h3 id="receipt-totals-header">Review Selected Items Totals</h3>
+                <div className="totals-item">
+                    <h4>Subtotal:</h4>
+                    <p>${activeItems ? (Math.round(activeItemsSubtotal*100)/100).toFixed(2) : undefined}</p>
+                </div>
+                <div className="totals-item">
+                    <h4>Tax:</h4>
+                    <p>${activeItems ? (Math.round((activeItemsSubtotal*taxPercent)*100)/100).toFixed(2) : undefined}</p>
+                </div>
+                <div className="totals-item">
+                    <h4>Tip:</h4>
+                    <p>${activeItems ? (Math.round((activeItemsSubtotal*tipPercent)*100)/100).toFixed(2) : undefined}</p>
+                </div>
+                <div className="totals-item" id="last-totals-item">
+                    <h4>Total:</h4>
+                    <p>${activeItems ? (Math.round((activeItemsSubtotal + activeItemsSubtotal*taxPercent + activeItemsSubtotal*tipPercent)*100)/100).toFixed(2): undefined}</p>
+                </div>
+                <button disabled={activeItems.length < 1} onClick={() => {
+                    payClick()
+                }} id = "venmo-btn">Pay With Venmo</button>
+            </section>
+        </div>
     )
 }

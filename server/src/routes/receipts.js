@@ -283,7 +283,15 @@ receiptsRouter.patch("/update",
                 WHERE id = $9
                 `, [receipt.merchant_name,creatorName,venmoHandle,subtotal,receipt.tax,receipt.tip,total,"active",receipt.id]
             )
-
+            // never actually delete items...
+            let existingItemsIds = items.filter(item => item.id).map(item => item.id)
+            await client.query(
+                `DELETE FROM receipt_items
+                 WHERE receipt_id = $1
+                   AND id <> ALL($2::uuid[])`,
+                [receipt.id, existingItemsIds]
+              )
+            
             for (const item of items) {
                 if (item.quantity == null) {
                     item.quantity = 1

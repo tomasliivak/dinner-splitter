@@ -40,6 +40,8 @@ export default function EditorPage() {
     }
     // need to add protection against negative quantities
     async function updateReceipt() {
+        console.log(receipt)
+        console.log(items)
         const res = await fetch("http://localhost:3000/api/receipts/update", {
             method: "PATCH",
             headers: {
@@ -61,11 +63,11 @@ export default function EditorPage() {
     */
     function deleteItem(item) {
         setItems(prev => prev.filter(oldItem => oldItem.client_id != item.client_id))
-        setReceipt((prev) => ({...prev,subtotal:Number(prev.subtotal)-Number(item.line_total),total:Number(prev.subtotal)-Number(item.line_total)}))
+        setReceipt((prev) => ({...prev,subtotal:Number(prev.subtotal)-Number(item.line_total),total:Number(prev.total)-Number(item.line_total)}))
     }
     function createItem(quantity,name,price) {
-        setItems(prev => [...prev,{client_id: crypto.randomUUID, id: null,name:name,quantity:Number(quantity),unit_price:Number(price),line_total:Number(price),receipt_id:receipt.id}])
-        setReceipt((prev) => ({...prev,subtotal:Number(prev.subtotal)+Number(price),total:Number(prev.subtotal)+Number(price)}))
+        setItems(prev => [...prev,{client_id: crypto.randomUUID(), id: null,name:name,quantity:Number(quantity),unit_price:Number(price),line_total:Number(price),receipt_id:receipt.id}])
+        setReceipt((prev) => ({...prev,subtotal:Number(prev.subtotal)+Number(price),total:Number(prev.total)+Number(price)}))
     }
     useEffect(() => {
         if (ready) {
@@ -127,7 +129,7 @@ export default function EditorPage() {
         }
         else {
             let rounded = Math.round(raw*100)/100
-            setReceipt((prev) => ({...prev,tax:rounded, total:Number(prev.total)-Number(prev.tax)+Number(raw)}))
+            setReceipt((prev) => ({...prev,tax:rounded, total:Number(prev.total)-Number(prev.tax)+Number(rounded)}))
         }
       }
     function handleTipChange(newTip) {
@@ -140,7 +142,7 @@ export default function EditorPage() {
         }
         else {
             let rounded = Math.round(raw*100)/100
-            setReceipt((prev) => ({...prev,tip:rounded, total:Number(prev.total)-Number(prev.tip)+Number(raw)}))
+            setReceipt((prev) => ({...prev,tip:rounded, total:Number(prev.total)-Number(prev.tip)+Number(rounded)}))
         }
       }
     function handlePriceCommit(raw, item) {
