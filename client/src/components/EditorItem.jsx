@@ -13,7 +13,7 @@ export default function EditorItem(props) {
             </div>
             <div>
                 <div className="e-item-field qty">
-                    <input type="number" value={props.item.quantity} onChange={e => props.qtyChange(e.target.value,props.item)} 
+                    <input type="number" value={props.item.quantity ?? ""} onChange={e => props.qtyChange(e.target.value,props.item)} 
                     onKeyDown={e => {
                         if (e.key === "Enter") e.preventDefault()
                       }}
@@ -37,7 +37,7 @@ export default function EditorItem(props) {
                 <div className="e-item-field price">
                     <div>
                         <p>$</p>
-                        <input type="number" value={props.item.line_total} onChange={e => props.priceChange(e.target.value,props.item)} 
+                        <input type="number" value={props.item.line_total ?? ""} onChange={e => props.priceChange(e.target.value,props.item)} 
                         onKeyDown={e => {
                             if (e.key === "Enter") e.preventDefault()
                         }}

@@ -59,31 +59,13 @@ export default function EditorPage() {
     and need to update them all at the same time in a client mode or potentially could come out of line
     with eachother
     */
-    async function deleteItem(item) {
-        const res = await fetch("http://localhost:3000/api/receipts/items", {
-            method: "DELETE",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                item:item
-            })
-        })
-        const data = await res.json()
-        setItems(prev => prev.filter(oldItem => oldItem.id != data.removed.id))
+    function deleteItem(item) {
+        setItems(prev => prev.filter(oldItem => oldItem.client_id != item.client_id))
+        setReceipt((prev) => ({...prev,subtotal:Number(prev.subtotal)-Number(item.line_total),total:Number(prev.subtotal)-Number(item.line_total)}))
     }
-    async function createItem(item) {
-        const res = await fetch("http://localhost:3000/api/receipts/items", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                item:item
-            })
-        })
-        const data = await res.json()
-        setItems(prev => ([...prev, data.added]))
+    function createItem(quantity,name,price) {
+        setItems(prev => [...prev,{client_id: crypto.randomUUID, id: null,name:name,quantity:Number(quantity),unit_price:Number(price),line_total:Number(price),receipt_id:receipt.id}])
+        setReceipt((prev) => ({...prev,subtotal:Number(prev.subtotal)+Number(price),total:Number(prev.subtotal)+Number(price)}))
     }
     useEffect(() => {
         if (ready) {
@@ -96,7 +78,7 @@ export default function EditorPage() {
     async function loadReceipt() {
         const data = await getReceipt()
             // potentially a problem if the llm returns like a decimal quantity for whatever reason
-            data.items = data.items.map(item => ({...item,quantity:Math.floor(item.quantity)}))
+            data.items = data.items.map(item => ({...item,quantity:Math.floor(item.quantity),client_id: crypto.randomUUID()}))
             setItems(data.items)
             setReceipt(data.receipt)
             setTaxPercent(data.receipt.tax/data.receipt.subtotal)
@@ -109,7 +91,7 @@ export default function EditorPage() {
     // need to add logic to update receipts subtotals and stuff. Also need to have it so it persists between refreshes but like probably shouldnt send the api call to change it for every little change?
     function handleQtyChange(newQty,item) {
         
-        setItems((prev) => prev.map(i => i.id == item.id ? {...i, quantity:newQty ? newQty: undefined} : i))
+        setItems((prev) => prev.map(i => i.client_id == item.client_id ? {...i, quantity:newQty ? newQty: undefined} : i))
     }
     function handleQtyCommit(raw, item) {
         let committed
@@ -123,16 +105,16 @@ export default function EditorPage() {
       
         setItems(prev =>
           prev.map(i =>
-            i.id === item.id ? { ...i, quantity: committed } : i
+            i.client_id === item.client_id ? { ...i, quantity: committed } : i
           )
         )
       }
     function handleNameChange(newName,item) {
-        setItems((prev) => prev.map(i => i.id == item.id ? {...i, name:newName} : i))
+        setItems((prev) => prev.map(i => i.client_id == item.client_id ? {...i, name:newName} : i))
     }
     function handlePriceChange(newPrice,item) {
         setReceipt((prev) => ({...prev,subtotal:Number(prev.subtotal)-Number(item.line_total)+Number(newPrice), total:Number(prev.total)-Number(item.line_total)+Number(newPrice)}))
-        setItems((prev) => prev.map(i => i.id == item.id ? {...i, line_total:newPrice} : i))
+        setItems((prev) => prev.map(i => i.client_id == item.client_id ? {...i, line_total:newPrice} : i))
     }
     // need to add blur/commit handling
     function handleTaxChange(newTax) {
@@ -173,17 +155,24 @@ export default function EditorPage() {
       
         setItems(prev =>
           prev.map(i =>
-            i.id === item.id ? { ...i, line_total: committed } : i
+            i.client_id === item.client_id ? { ...i, line_total: committed } : i
           )
         )
       }
     function renderItems() {
-        return items.map((item,index) => <EditorItem key={item.id} 
+        return items.map((item,index) => <EditorItem key={item.client_id} 
         item={item} qtyChange={handleQtyChange} nameChange={handleNameChange} 
         priceChange={handlePriceChange} index={index} qtyCommit={handleQtyCommit} 
         priceCommit={handlePriceCommit} deleteItem={deleteItem}
         />)
     }
+    function sanitizeVenmoInput(raw) {
+        return raw
+          .trim()
+          .replace(/^@+/, "")     // remove leading @@@
+          .replace(/\s+/g, "")    // remove spaces
+          .toLowerCase();
+      }
     return (
         <form onSubmit={(e) => {
             e.preventDefault()
@@ -228,7 +217,7 @@ export default function EditorPage() {
                     </div>
                 </div>
                 <button type="button" 
-                onClick={(e => {createItem({quantity: Number(newQty), name: newName, line_total: Number(newPrice), receipt_id:receipt.id})
+                onClick={(e => {createItem(newQty,newName,newPrice)
                 setNewQty("")
                 setNewName("")
                 setNewPrice("")
@@ -290,14 +279,17 @@ export default function EditorPage() {
                 <p>Creator</p>
             </div>
             <div className="editor-input-div">
-                <input type="text" value={venmoHandle} onChange={e => setVenmoHandle(e.target.value)}
+                <input type="text" value={venmoHandle} onChange={e => setVenmoHandle(sanitizeVenmoInput(e.target.value))}
                 onKeyDown={e => {
                     if (e.key === "Enter") e.preventDefault()
                 }}
                 required
-                placeholder="Enter the Venmo Handle"
+                placeholder="Enter your Venmo handle (no @, no spaces)"
                 />
-                <p>Venmo Handle</p>
+                <div>
+                    <p>Venmo Handle (no @, no spaces)</p>
+                    <button type="button" onClick={(e => window.open("https://venmo.com/?txn=pay&recipients=" + venmoHandle +"&note=Venmo Handle Testing", "_blank"))}>Test Venmo Handle</button>
+                </div>
             </div>
             <button className="save-button" type="submit">Save Receipt</button>
         </section>

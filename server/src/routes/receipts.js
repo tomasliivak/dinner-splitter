@@ -2,6 +2,8 @@ import express from "express"
 import multer from "multer"
 import sharp from "sharp"
 
+import rateLimit from "express-rate-limit";
+
 import crypto from "crypto"
 import { pool } from "../db.js"
 
@@ -10,6 +12,13 @@ import { extractReceipt } from "../services/extract.js"
 
 export const receiptsRouter = express.Router()
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 8 * 1024 * 1024 } })
+const scanLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Too many scans. Try again later." },
+  })
 
 function createVenmoLink(venmoHandle,total) {
     // https://venmo.com/?txn=pay&recipients=tomasliivak&amount=10&note=dinner
@@ -25,12 +34,14 @@ function hashToken(token) {
   }
 
 receiptsRouter.post(
-    "/scan",
+    "/scan", scanLimiter,
     upload.single("receipt"),
     async (req, res) => {
         if (!req.file?.buffer) {
             return res.status(400).json({ error: "No file" })
         }
+        const { creatorId } = req.body
+
         const normalizedBuffer = await sharp(req.file.buffer)
             .rotate()
             .resize({ width: 2000, withoutEnlargement: true })
@@ -51,11 +62,11 @@ receiptsRouter.post(
 
             const receiptResult = await client.query(
                 `
-                INSERT INTO receipts (share_key, merchant_name, subtotal, tax, tip, total, venmo_handle, creator)
-                VALUES ($1, $2, $3, $4, $5, $6, $7,$8)
+                INSERT INTO receipts (share_key, merchant_name, subtotal, tax, tip, total, venmo_handle, creator, creator_id)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
                 RETURNING *
                 `,
-                [share_key,receipt.merchant_name, receipt.subtotal, receipt.tax, receipt.tip, receipt.total, venmo_handle, creator]
+                [share_key,receipt.merchant_name, receipt.subtotal, receipt.tax, receipt.tip, receipt.total, venmo_handle, creator, creatorId]
             )
             let receiptRow = receiptResult.rows[0]
             
@@ -246,8 +257,12 @@ receiptsRouter.patch("/update",
     async(req,res) => {
         const { receipt, items, creatorName, venmoHandle } = req.body
         // probably should add checks if these are valid formats of things. 
-        console.log(items)
-        console.log(receipt)
+        let subtotal = 0
+        for (const item of items) {
+            subtotal += Number(item.line_total)
+        }
+        let total = Number(receipt.tip) + Number(receipt.tax) + Number(subtotal)
+
         const client = await pool.connect()
         try {
             await client.query("BEGIN")
@@ -266,26 +281,38 @@ receiptsRouter.patch("/update",
                     status = $8,
                     updated_at = NOW()
                 WHERE id = $9
-                `, [receipt.merchant_name,creatorName,venmoHandle,receipt.subtotal,receipt.tax,receipt.tip,receipt.total,"active",receipt.id]
+                `, [receipt.merchant_name,creatorName,venmoHandle,subtotal,receipt.tax,receipt.tip,total,"active",receipt.id]
             )
 
             for (const item of items) {
                 if (item.quantity == null) {
                     item.quantity = 1
                 }
-                const { rows } = await client.query(
-                  `
-                UPDATE receipt_items
-                SET
-                    name = $1,
-                    quantity = $2,
-                    unit_price = $3,
-                    line_total = $4
-                WHERE id = $5
-                  `,
-                  [item.name,item.quantity,item.unit_price,item.line_total,item.id]
-                )
-        
+                if (item.id) {
+                    const { rows } = await client.query(
+                        `
+                      UPDATE receipt_items
+                      SET
+                          name = $1,
+                          quantity = $2,
+                          unit_price = $3,
+                          line_total = $4
+                      WHERE id = $5
+                        `,
+                        [item.name,item.quantity,item.unit_price,item.line_total,item.id]
+                      )
+                }
+                else {
+                    const added = await client.query(
+                        `
+                        INSERT INTO receipt_items
+                          (receipt_id, name, quantity, unit_price, line_total)
+                        VALUES ($1, $2, $3, $4, $5)
+                        RETURNING *
+                        `,
+                        [item.receipt_id, item.name, item.quantity, item.line_total, item.line_total]
+                      )
+                }
               }
             await client.query("COMMIT")
             return res.json({updated:true})
@@ -297,18 +324,31 @@ receiptsRouter.patch("/update",
         }
     }
 )
-
+/* Dont need this anymore, bundled it with the updated and frontend
 receiptsRouter.delete("/items",
     async(req,res) => {
         const {item} = req.body
-        const removed = await pool.query(
-            `
-            DELETE FROM receipt_items
-            WHERE id = $1
-            RETURNING *
-            `, [item.id]
-        )
-        return res.json({removed:removed.rows[0]})
+        const client = await pool.connect()
+        try {
+            await client.query("BEGIN")
+            
+            const removed = await client.query(
+                `
+                DELETE FROM receipt_items
+                WHERE id = $1
+                RETURNING *
+                `, [item.id]
+            )
+            
+            await client.query("COMMIT")
+
+            return res.json({updated:true})
+        } catch (err) {
+            await client.query("ROLLBACK")
+            throw err
+        } finally {
+            client.release()
+        }
     }
 )
 receiptsRouter.post("/items",
@@ -334,3 +374,4 @@ receiptsRouter.post("/items",
         return res.json({added:added.rows[0]})
     }
 )
+*/

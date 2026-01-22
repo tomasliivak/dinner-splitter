@@ -42,6 +42,7 @@ export default function ReceiptPage() {
     async function registerParticipant(receiptId) {
         let id = crypto.randomUUID() // browser-native, secure
         localStorage.setItem("participant_id", id)
+        setParticipantId(id)
         const res = await fetch("http://localhost:3000/api/receipts/register", {
             method: "POST",
             headers: {

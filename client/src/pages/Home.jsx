@@ -12,8 +12,25 @@ export default function Home() {
     const [key, setKey] = useState()
     const [ready, setReady] = useState(false)
     const [loading, setLoading] = useState(false)
+    const [participantId, setParticipantId] = useState()
     const navigate = useNavigate()
-
+    
+    async function registerParticipant(receiptId) {
+        let id = crypto.randomUUID()
+        localStorage.setItem("participant_id", id)
+        setParticipantId(id)
+        const res = await fetch("http://localhost:3000/api/receipts/register", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+              },
+            body: JSON.stringify({
+                "receiptId" : receiptId,
+                "participantId" : id
+            })
+        }
+        )
+    }
     async function handleFileUpload(e) {
         // upload file to backend
         const file = e.target.files[0]
@@ -21,11 +38,13 @@ export default function Home() {
         setLoading(true)
         const formData = new FormData()
         formData.append("receipt", file)
+        formData.append("creatorId", participantId)
 
         const res = await fetch("http://localhost:3000/api/receipts/scan", {
             method: "POST",
-            body: formData,
-        })
+            body: formData
+            })
+        
 
         const data = await res.json()
         
@@ -43,6 +62,19 @@ export default function Home() {
         }
       }, [ready, navigate])
     
+    async function onLoad() {
+        let id = localStorage.getItem("participant_id");
+            if (!id) {
+            await registerParticipant(data.receipt.id)
+            }
+            else {
+                setParticipantId(id)
+            }
+    }
+    useEffect(() => {
+        onLoad()
+    },[]) 
+
     return (
         <section id="home">
             
