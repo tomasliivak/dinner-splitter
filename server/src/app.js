@@ -28,6 +28,10 @@ if (process.env.NODE_ENV === "production") {
     res.sendFile(path.join(distPath, "index.html"))
   })
 }
+app.get("/health", async (req, res) => {
+  const r = await pool.query("SELECT 1 as ok");
+  res.json(r.rows[0]);
+})
 app.use((req, res, next) => {
   console.log("REQ:", req.method, req.url)
   next()

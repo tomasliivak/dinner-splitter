@@ -1,6 +1,21 @@
 import vision from "@google-cloud/vision";
 
-const visionClient = new vision.ImageAnnotatorClient();
+let options = undefined;
+
+const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+
+if (raw && raw.trim().startsWith("{")) {
+  try {
+    options = { credentials: JSON.parse(raw) };
+  } catch (e) {
+    console.error("GOOGLE_SERVICE_ACCOUNT_JSON is set but not valid JSON. Ignoring it.");
+    options = undefined; // fall back to ADC / GOOGLE_APPLICATION_CREDENTIALS
+  }
+}
+
+const visionClient = new vision.ImageAnnotatorClient(options);
+
+
 
 function getWord (word) {
   return word.symbols.map(s => s.text ? s.text : "").join("")
