@@ -10,7 +10,7 @@ import { receiptsRouter } from "./routes/receipts.js"
 const app = express()
 app.set("trust proxy", 1)
 app.use(cors())
-app.use(express.json())
+app.use(express.json({ limit: "20kb" }))
 
 const generalLimiter = rateLimit({
   windowMs: 60 * 1000,

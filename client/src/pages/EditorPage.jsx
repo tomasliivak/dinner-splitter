@@ -8,6 +8,7 @@ import "./EditorPage.css"
 
 // Editor Page Notes: Need to add venmo handle validation. Make page look good as well...
 // Some of the stuff (like the delete button) may not be mobile sized(too small to press)
+// This math is still messed up 
 export default function EditorPage() {
     // this probably would break if something put in a random url for now. 
     // also would break if some just went to /r with nothing else with it
@@ -40,8 +41,6 @@ export default function EditorPage() {
     }
     // need to add protection against negative quantities
     async function updateReceipt() {
-        console.log(receipt)
-        console.log(items)
         const res = await fetch("http://localhost:3000/api/receipts/update", {
             method: "PATCH",
             headers: {
@@ -276,6 +275,7 @@ export default function EditorPage() {
                 onKeyDown={e => {
                     if (e.key === "Enter") e.preventDefault()
                 }}
+                required
                 placeholder="Enter Creators Name"
                 />
                 <p>Creator</p>

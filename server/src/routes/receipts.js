@@ -19,12 +19,77 @@ const scanLimiter = rateLimit({
     legacyHeaders: false,
     message: { error: "Too many scans. Try again later." },
   })
+function validateString(value, {min = 0, max = 100, regex } = {}) {
+    if (typeof value !== "string") {
+        return undefined
+    }
+    const trimmed = value.trim();
 
-function createVenmoLink(venmoHandle,total) {
-    // https://venmo.com/?txn=pay&recipients=tomasliivak&amount=10&note=dinner
-    //maybe eventually add custom labels but feels irrelevant rn. Replace the note with the name of the app?
-    let link = "https://venmo.com/?txn=pay&recipients=" + venmoHandle + "&amount=" + total +"&note=dinner"
-    return link
+    if (trimmed.length < min || trimmed.length > max) {
+        return undefined
+    }
+
+    if (regex && !regex.test(trimmed)) {
+        return undefined
+    }
+
+    return trimmed;
+}
+function isValidNumber(x, { min = -Infinity, max = Infinity } = {}) {
+    return typeof x === "number" && Number.isFinite(x) && x >= min && x <= max
+}
+function validateItem(item) {
+    if (typeof item !== "object" || item === null) return false;
+    const receiptId = validateString(item.receipt_id, { regex: /^[0-9a-f-]{36}$/i })
+    const itemId = validateString(item.id, { regex: /^[0-9a-f-]{36}$/i })
+    const quantity = Number.isInteger(Number(item.quantity)) && Number(item.quantity) >= 1 && Number(item.quantity) <= 100
+    const price = isValidNumber(Number(item.line_total))
+    const unitPrice = isValidNumber(Number(item.unit_price))
+    const name = validateString(item.name)
+    if (!receiptId || !itemId || !quantity || !price || !unitPrice || !name) {
+        return false
+    }
+    return true
+}
+
+function validateReceipt(receipt) {
+    const share_key = validateString(receipt.share_key)
+    const merchant_name = validateString(receipt.merchant_name)
+    const subTotal = isValidNumber(Number(receipt.subtotal))
+    let tax = 0;
+    if (receipt.tax != null) {
+        tax = isValidNumber(Number(receipt.tax))
+    }
+    else {
+        tax = true
+    }
+    let tip = 0;
+    if (receipt.tip != null) {
+        tip = isValidNumber(Number(receipt.tip))
+    }
+    else {
+        tip = true
+    }
+    const total = isValidNumber(Number(receipt.total))
+    const venmoHandle = validateString(receipt.venmo_handle)
+    const creator = validateString(receipt.creator)
+    const creator_id = validateString(receipt.creator_id)
+    const id = validateString(receipt.id, { regex: /^[0-9a-f-]{36}$/i })
+    if (!share_key || !merchant_name || !subTotal || !tax || !tip || !total || !venmoHandle || !creator || !creator_id || !id) {
+        return false
+    }
+    return true
+}
+
+function createVenmoLink(venmoHandle, total) {
+    const params = new URLSearchParams({
+        txn: "pay",
+        recipients: venmoHandle,
+        amount: total.toFixed(2),
+        note: "Dinner split"
+    })
+
+    return `https://venmo.com/?${params.toString()}`
 }
 function hashToken(token) {
     return crypto
@@ -32,7 +97,7 @@ function hashToken(token) {
       .update(token)
       .digest("hex")
   }
-
+//add error handling to this asap, has failed me once
 receiptsRouter.post(
     "/scan", scanLimiter,
     upload.single("receipt"),
@@ -40,7 +105,11 @@ receiptsRouter.post(
         if (!req.file?.buffer) {
             return res.status(400).json({ error: "No file" })
         }
-        const { creatorId } = req.body
+        const creatorId = validateString(req.body.creatorId)
+
+        if (!creatorId) {
+            return res.status(400).json({error: "Invalid creatorId"})
+        }
 
         const normalizedBuffer = await sharp(req.file.buffer)
             .rotate()
@@ -48,15 +117,15 @@ receiptsRouter.post(
             .jpeg({ quality: 90 })
             .toBuffer()
         const text = await ocrReceiptImageBuffer(normalizedBuffer)
-
+        
         const receipt = await extractReceipt(text)
         
         const share_key = crypto.randomBytes(16).toString("hex")
         
         const client = await pool.connect()
 
-        let venmo_handle = "default"
-        let creator = "development"
+        let venmo_handle = "placeholder"
+        let creator = "placeholder"
         try {
             await client.query("BEGIN")
 
@@ -114,7 +183,7 @@ receiptsRouter.post(
             return res.json({created:true,receipt_id:receiptRow.id,share_key:share_key})
         } catch (err) {
             await client.query("ROLLBACK")
-            throw err
+            res.status(400).json({error:"upload failed"})
         } finally {
             client.release()
         }
@@ -129,7 +198,11 @@ receiptsRouter.post(
 receiptsRouter.get(
     "/retrieve",
     async (req,res) => {
-        const { receiptId,shareKey } = req.query
+        const receiptId = validateString(req.query.receiptId)
+        const shareKey = validateString(req.query.shareKey)
+        if (!receiptId || !shareKey) {
+            return res.status(400).json({error: "Invalid receiptId or shareKey"})
+        }
         let items = []
         let claimedItems = []
         // prolly should make this all one instance so if something fails it doesnt get messed up + the state of the dbs is all the same as it goes through it
@@ -169,9 +242,11 @@ receiptsRouter.get(
 // for future notice, need to make this so if the participant has a localStorage but not a id in the participant table, redo it
 receiptsRouter.post("/register",
     async(req,res) => {
-
-        const { receiptId, participantId } = req.body
-
+        const receiptId = validateString(req.body.receiptId)
+        const participantId = validateString(req.body.participantId)
+        if (!receiptId || !participantId) {
+            return res.status(400).json({error: "Invalid receiptId or participantId"})
+        }
         const hashed = hashToken(participantId)
 
         //also eventually need venmo_handle and display_name
@@ -190,15 +265,38 @@ receiptsRouter.post("/register",
 
 receiptsRouter.post("/claim",
     async(req,res) => {
-        const { claimedItems, venmoHandle, tipPercent, taxPercent} = req.body
-        const participantToken = req.get("Participant-Token")
+        
+        const claimedItems = req.body.claimedItems
+        const venmoHandle = validateString(req.body.venmoHandle)
+        const tipPercent = req.body.tipPercent
+        const taxPercent = req.body.taxPercent
+        const participantToken = validateString(req.get("Participant-Token"))
+
+        if (!participantToken || !venmoHandle) {
+            return res.status(400).json({error: "Invalid participant id or venmo handle"})
+        }
+        if (!isValidNumber(Number(tipPercent), { min: 0, max: 10000 }) || !isValidNumber(Number(taxPercent), { min: 0, max: 10000 })) {
+            return res.status(400).json({ error: "Invalid tip or tax" })
+        }
+
+        for (const item of claimedItems) {
+            if (!validateItem(item)) {
+                return res.status(400).json({ error: "Invalid item" })
+            }
+        }
+        if (claimedItems.length > 100) {
+            return res.status(400).json({ error: "Too many items" });
+        }
+        
         const hashed = hashToken(participantToken)
 
         const participant = await pool.query(
             `SELECT id FROM participants WHERE token_hash = $1`,
             [hashed]
-          )
-        
+        )
+        if (!participant.rows[0].id) {
+            return res.status(400).json({error: "Participant Doesnt Exist"})
+        }
         const participantId = participant.rows[0].id
         let total = 0
         for (const item of claimedItems) {
@@ -232,7 +330,7 @@ receiptsRouter.post("/claim",
             return res.json({created:true,createdClaims:insertedItems,venmoLink:link})
         } catch (err) {
             await client.query("ROLLBACK")
-            throw err
+            return res.status(400).json({error: "claim failed"})
         } finally {
             client.release()
         }
@@ -241,7 +339,10 @@ receiptsRouter.post("/claim",
 
 receiptsRouter.post("/unclaim",
     async(req,res) => {
-        const { item } = req.body
+        const item = req.body.item
+        if (!validateItem(item)) {
+            return res.status(400).json({ error: "Invalid Item" })
+        }
         const claims = await pool.query(
             `
                 DELETE FROM claims
@@ -255,7 +356,26 @@ receiptsRouter.post("/unclaim",
 
 receiptsRouter.patch("/update", 
     async(req,res) => {
-        const { receipt, items, creatorName, venmoHandle } = req.body
+        const receipt = req.body.receipt
+        const items = req.body.items
+        const creatorName = validateString(req.body.creatorName)
+        const venmoHandle = validateString(req.body.venmoHandle)
+
+        if (!creatorName || !venmoHandle) {
+            return res.status(400).json({ error: "Invalid creator name or venmo handle" })
+        } 
+        for (const item of items) {
+            if (!validateItem(item)) {
+                return res.status(400).json({ error: "Invalid item in claimed items" })
+            }
+        }
+        if (items.length > 100) {
+            return res.status(400).json({ error: "Too many items" });
+        }
+        if (!validateReceipt(receipt)) {
+            return res.status(400).json({ error: "Invalid Receipt"})
+        }
+
         // probably should add checks if these are valid formats of things. 
         let subtotal = 0
         for (const item of items) {
@@ -283,7 +403,7 @@ receiptsRouter.patch("/update",
                 WHERE id = $9
                 `, [receipt.merchant_name,creatorName,venmoHandle,subtotal,receipt.tax,receipt.tip,total,"active",receipt.id]
             )
-            // never actually delete items...
+            
             let existingItemsIds = items.filter(item => item.id).map(item => item.id)
             await client.query(
                 `DELETE FROM receipt_items
@@ -326,60 +446,9 @@ receiptsRouter.patch("/update",
             return res.json({updated:true})
         } catch (err) {
             await client.query("ROLLBACK")
-            throw err
+            return res.status(400).json({error : "update failed"})
         } finally {
             client.release()
         }
     }
 )
-/* Dont need this anymore, bundled it with the updated and frontend
-receiptsRouter.delete("/items",
-    async(req,res) => {
-        const {item} = req.body
-        const client = await pool.connect()
-        try {
-            await client.query("BEGIN")
-            
-            const removed = await client.query(
-                `
-                DELETE FROM receipt_items
-                WHERE id = $1
-                RETURNING *
-                `, [item.id]
-            )
-            
-            await client.query("COMMIT")
-
-            return res.json({updated:true})
-        } catch (err) {
-            await client.query("ROLLBACK")
-            throw err
-        } finally {
-            client.release()
-        }
-    }
-)
-receiptsRouter.post("/items",
-    async(req,res) => {
-        const {item} = req.body
-        item.line_total = Math.round(item.line_total*100)/100
-        item.quantity = Math.round(item.quantity)
-        if (item.quantity < 1) {
-            return res.status(400).json({error:"Invalid Quantity"})
-        }
-        if (item.line_total < 1) {
-            return res.status(400).json({error:"Invalid Price"})
-        }
-        const added = await pool.query(
-            `
-            INSERT INTO receipt_items
-              (receipt_id, name, quantity, unit_price, line_total)
-            VALUES ($1, $2, $3, $4, $5)
-            RETURNING *
-            `,
-            [item.receipt_id, item.name, item.quantity, item.line_total, item.line_total]
-          )
-        return res.json({added:added.rows[0]})
-    }
-)
-*/

@@ -7,12 +7,16 @@ const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 // Note to do later, reduce the amount of tokens in the prompt while maintaining accuracy
   function buildPrompt(ocrText) {
     return `
-  You extract structured data from receipt OCR text.
-  
+  Extract structured JSON data from a line by line text of a receipt(ocr)
+
+  RECEIPT TEXT: 
+  """
+  ${ocrText}
+  """
   Return ONLY valid JSON exactly matching:
   {
     "subtotal": number|null,
-    "merchant_name": string
+    "merchant_name": string,
     "tax": number|null,
     "tip": number|null,
     "total": number|null,
@@ -22,13 +26,23 @@ const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   Hard rules:
   - Output must be strict JSON. No comments, no trailing commas.
   - Numbers must be decimals with dot (e.g. 56.58). No currency symbols.
-  - If unsure, use null (except: try hard to fill total).
+  - If unsure, use null (except: try hard to fill total and line items).
   - Parse line items line-by-line.
-  - LINE ITEM HEURISTIC (IMPORTANT):
-    If a line matches: ^(\\d+)\\s+(.+?)\\s+(\\d+\\.\\d{2})$ then:
+  - LINE ITEM HEURISTIC(IMPORTANT):
+    1) Quantity-first format:: ^(\\d+)\\s+(.+?)\\s+(\\d+\\.\\d{2})$ then:
       quantity = first number
       name = middle text (trim)
       price = last number
+    2) Name + price format:
+    ^(.+?)\\s+(\\d+\\.\\d{2})$
+    → quantity = 1
+    → name = text
+    → price = last number
+    3) Embedded quantity like:
+    "Item ( 2 @ 5.00 ) 10.00"
+    → quantity = 2
+    → unit_price = 5.00
+    → price = 10.00
   - Do NOT drop obvious quantities. If a line begins with an integer followed by words, treat that integer as quantity unless it is clearly not a purchasable item line (e.g., address, phone, table, order number).
   - unit_price:
     If quantity > 1 AND price looks like total-for-line, set unit_price = price / quantity (rounded to 2 decimals).
@@ -38,13 +52,9 @@ const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     - subtotal from "SUB TOTAL" or similar
     - tax from "TAX" lines (sum if multiple)
     - total from the most likely final "TOTAL"
-  
-  Examples:
+  LINE ITEM Examples:
   Input line: "2 Lunch 45.90" => {name:"Lunch", quantity:2, price:45.90, unit_price:22.95}
   Input line: "1 Coffee 3.00" => {name:"Coffee", quantity:1, price:3.00, unit_price:3.00}
-  
-  Receipt text:
-  """${ocrText}"""
   `.trim();
   }
   
