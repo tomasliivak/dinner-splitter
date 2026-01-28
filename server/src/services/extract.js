@@ -1,8 +1,8 @@
-import OpenAI from "openai";
-import dotenv from "dotenv";
-dotenv.config();
+import OpenAI from "openai"
+import dotenv from "dotenv"
+dotenv.config()
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
 // Note to do later, reduce the amount of tokens in the prompt while maintaining accuracy
 function buildPrompt(ocrText) {
@@ -55,41 +55,70 @@ function buildPrompt(ocrText) {
   LINE ITEM Examples:
   Input line: "2 Lunch 45.90" => {name:"Lunch", quantity:2, price:45.90, unit_price:22.95}
   Input line: "1 Coffee 3.00" => {name:"Coffee", quantity:1, price:3.00, unit_price:3.00}
-  `.trim();
+  `.trim()
   }
 
   
-export async function extractReceipt (ocrText) {
-    
+  export async function extractReceipt(ocrText) {
     const prompt = buildPrompt(ocrText)
-
-    const response = await client.responses.create({
-      model: "gpt-5-nano",
-      reasoning: { effort: "minimal" },   // biggest latency lever
-      text: { verbosity: "low" },         // shorter answers => faster          
-      input: prompt
-    })
-
-    const outText = response.output_text ?? response.output?.map(o => o.content?.map(c => c.text).join("")).join("") ?? ""
-
-    let parsed
-
-    try {
-        parsed = JSON.parse(outText)
+  
+    async function call(promptText) {
+      const res = await client.responses.create({
+        model: "gpt-5-nano",
+        reasoning: { effort: "minimal" },
+        text: { verbosity: "low" },
+        input: promptText
+      })
+  
+      return res.output_text ?? ""
     }
-    catch {
-        throw new Error("Not a valid JSON format")
-    }
-
-    const normalized = {
-        ...parsed,
-        subtotal: parsed.subtotal ?? undefined,
-        tax: parsed.tax ?? undefined,
-        tip: parsed.tip ?? undefined,
-        line_items: parsed.line_items ?? undefined,
+  
+    let lastError = ""
+  
+    // 2 attempts max (normal + retry) Though rn the retry attempt is kinda shoddy that it might not work anyways
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const outText = await call(
+          attempt === 0
+            ? prompt
+            : `${prompt}\n\nPrevious attempt failed: ${lastError}\nTry again.`
+        )
+  
+        const cleaned = outText
+          .replace(/^```json/i, "")
+          .replace(/```$/, "")
+          .trim()
+  
+        const parsed = JSON.parse(cleaned)
+  
+        
+        if (!parsed.merchant_name) throw new Error("missing merchant");
+        if (!Array.isArray(parsed.line_items)) throw new Error("no items")
+  
+        const sum = parsed.line_items.reduce(
+          (s, i) => s + (i.price ?? 0),
+          0
+        )
+  
+        if (parsed.subtotal && Math.abs(parsed.subtotal - sum) > 0.05) {
+          throw new Error("subtotal mismatch")
+        }
+  
+        
+        return {
+          ...parsed,
+          subtotal: parsed.subtotal ?? undefined,
+          tax: parsed.tax ?? undefined,
+          tip: parsed.tip ?? undefined,
+          line_items: parsed.line_items ?? undefined
+        }
+  
+      } catch (err) {
+        lastError = String(err)
       }
+    }
     
-      return normalized
-
-}
+    return undefined
+  }
+  
 

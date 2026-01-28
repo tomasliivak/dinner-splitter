@@ -37,7 +37,14 @@ export default function EditorPage() {
             method: "GET"
         }
         )
-        return res.json()
+        const data = await res.json()
+        
+        if (!res.ok) {
+            toast.error(data.error || "Server error")
+            return
+        }
+        
+        return data
     }
     // need to add protection against negative quantities
     async function updateReceipt() {
@@ -53,6 +60,12 @@ export default function EditorPage() {
                 creatorName: creatorName
             })
         })
+        const data = await res.json()
+        
+        if (!res.ok) {
+            toast.error(data.error || "Server error")
+            return
+        }
         setReady(true)
     }
     /*these are technically not done. Need to also edit the receipt values 
@@ -82,7 +95,7 @@ export default function EditorPage() {
             data.items = data.items.map(item => ({...item,quantity:Math.floor(item.quantity),client_id: crypto.randomUUID()}))
             setItems(data.items)
             setReceipt(data.receipt)
-            setTaxPercent(data.receipt.tax/data.receipt.subtotal)
+            setTaxPercent(data.receipt.subtotal ? (data.receipt.tax || 0) / data.receipt.subtotal : 0)
             setTipPercent(data.receipt.tip/data.receipt.subtotal)
     }
     useEffect(() => {

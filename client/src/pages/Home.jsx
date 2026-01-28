@@ -5,6 +5,7 @@ import { useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import  LoadingDots from "../components/LoadingDots"
 import receiptMockup from "../assets/receipt-mockup.png"
+import toast from "react-hot-toast";
 
 import "./Home.css"
 export default function Home() {
@@ -15,7 +16,7 @@ export default function Home() {
     const [loading, setLoading] = useState(false)
     const [participantId, setParticipantId] = useState()
     const navigate = useNavigate()
-    
+    // technically no way to fix this client side if it breaks but it shouldnt?
     async function registerParticipant(receiptId) {
         let id = crypto.randomUUID()
         localStorage.setItem("participant_id", id)
@@ -31,6 +32,12 @@ export default function Home() {
             })
         }
         )
+        const data = await res.json()
+
+        if (!res.ok) {
+            toast.error(data.error || "Server error")
+            return
+        }
     }
     async function handleFileUpload(e) {
         // upload file to backend
@@ -46,9 +53,15 @@ export default function Home() {
             body: formData
             })
         
-
         const data = await res.json()
-        
+
+        if (!res.ok) {
+            toast.error(data.error || "Server error")
+            e.target.value = null
+            setLoading(false)
+            return
+        }
+
         e.target.value = null
         setReceiptId(data.receipt_id)
         setKey(data.share_key)

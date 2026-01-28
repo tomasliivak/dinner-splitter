@@ -36,11 +36,17 @@ export default function ReceiptPage() {
             
         }
         )
-        return res.json()
+        const data = await res.json()
+        
+        if (!res.ok) {
+            toast.error(data.error || "Server error")
+            return
+        }
+        return data
     }
-    // handles participant registration
+    // handles participant registration. Need to add something that happens when it returns not okay
     async function registerParticipant(receiptId) {
-        let id = crypto.randomUUID() // browser-native, secure
+        let id = crypto.randomUUID()
         localStorage.setItem("participant_id", id)
         setParticipantId(id)
         const res = await fetch("http://localhost:3000/api/receipts/register", {
@@ -54,7 +60,12 @@ export default function ReceiptPage() {
             })
         }
         )
-
+        const data = await res.json()
+        
+        if (!res.ok) {
+            toast.error(data.error || "Server error")
+            return
+        }
     }
     // handles startup/calling to get the initial receipt and will also probably be used for refreshes later
     // need to add check for a proper link. If not proper link, re-nav to error page. 
@@ -147,8 +158,15 @@ export default function ReceiptPage() {
             body: JSON.stringify({claimedItems: items, venmoHandle: receipt.venmo_handle, taxPercent: taxPercent, tipPercent: tipPercent })
             }
         )
-        setActiveItems([])
         const data = await res.json()
+
+        if (!res.ok) {
+            loadReceipt()
+            toast.error(data.error || "Server error")
+            return
+        }
+
+        setActiveItems([])
         window.open(data.venmoLink, "_blank")
     }
     
@@ -180,10 +198,17 @@ export default function ReceiptPage() {
             {
                 method: "POST",
                 headers: { "Content-Type": "application/json"},
-                body: JSON.stringify({item: item})
+                body: JSON.stringify({item: item, receiptId: receipt.id})
             }
         )
         const data = await res.json()
+        
+        if (!res.ok) {
+            loadReceipt()
+            toast.error(data.error || "Server error")
+            return
+        }
+
         let newClaimed = claimedItems.filter(claim => claim.id !== data.removed.id)
         setClaimedItems(newClaimed)
     }

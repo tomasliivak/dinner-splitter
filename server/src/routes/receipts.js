@@ -117,14 +117,23 @@ receiptsRouter.post(
             .jpeg({ quality: 90 })
             .toBuffer()
 
-        console.time("total")
-        console.time("ocr")
-        const text = await ocrReceiptImageBuffer(normalizedBuffer)
-        console.timeEnd("ocr")
-        console.time("llm")
+        let text = ""
+        try {
+            text = await ocrReceiptImageBuffer(normalizedBuffer)
+        }
+        catch {
+            return res.status(400).json({error:"Try again. Bad Receipt", receipt:"null"})
+        }
+        
+        
         const receipt = await extractReceipt(text)
-        console.timeEnd("llm")
-        console.timeEnd("total")
+        if (!receipt) {
+            return res.status(400).json({
+                error:"Try again. Failed to Extract Receipt",
+                receipt: "null"
+            })
+        }
+
         const share_key = crypto.randomBytes(16).toString("hex")
         
         const client = await pool.connect()
@@ -188,7 +197,7 @@ receiptsRouter.post(
             return res.json({created:true,receipt_id:receiptRow.id,share_key:share_key})
         } catch (err) {
             await client.query("ROLLBACK")
-            res.status(400).json({error:"upload failed"})
+            res.status(400).json({error:"Upload Failed"})
         } finally {
             client.release()
         }
@@ -206,7 +215,7 @@ receiptsRouter.get(
         const receiptId = validateString(req.query.receiptId)
         const shareKey = validateString(req.query.shareKey)
         if (!receiptId || !shareKey) {
-            return res.status(400).json({error: "Invalid receiptId or shareKey"})
+            return res.status(400).json({error: "Invalid Receipt Id or Share Key"})
         }
         let items = []
         let claimedItems = []
@@ -221,7 +230,7 @@ receiptsRouter.get(
             `, 
             [receiptId, shareKey])
         if (result.rows.length == 0) {
-            return res.status(404).json({ error: "Receipt not found" })
+            return res.status(404).json({ error: "Receipt Not Found" })
         }
         else {
         items = await pool.query(
@@ -250,7 +259,7 @@ receiptsRouter.post("/register",
         const receiptId = validateString(req.body.receiptId)
         const participantId = validateString(req.body.participantId)
         if (!receiptId || !participantId) {
-            return res.status(400).json({error: "Invalid receiptId or participantId"})
+            return res.status(400).json({error: "Invalid Receipt Id or Participant Id"})
         }
         const hashed = hashToken(participantId)
 
@@ -278,19 +287,19 @@ receiptsRouter.post("/claim",
         const participantToken = validateString(req.get("Participant-Token"))
 
         if (!participantToken || !venmoHandle) {
-            return res.status(400).json({error: "Invalid participant id or venmo handle"})
+            return res.status(400).json({error: "Invalid Participant Id or Venmo Handle"})
         }
-        if (!isValidNumber(Number(tipPercent), { min: 0, max: 10000 }) || !isValidNumber(Number(taxPercent), { min: 0, max: 10000 })) {
-            return res.status(400).json({ error: "Invalid tip or tax" })
+        if (!isValidNumber(Number(tipPercent), { min: 0, max: 100 }) || !isValidNumber(Number(taxPercent), { min: 0, max: 100 })) {
+            return res.status(400).json({ error: "Invalid Tip or Tax" })
         }
 
         for (const item of claimedItems) {
             if (!validateItem(item)) {
-                return res.status(400).json({ error: "Invalid item" })
+                return res.status(400).json({ error: "Invalid Item" })
             }
         }
         if (claimedItems.length > 100) {
-            return res.status(400).json({ error: "Too many items" });
+            return res.status(400).json({ error: "Too Many Items" });
         }
         
         const hashed = hashToken(participantToken)
@@ -299,7 +308,7 @@ receiptsRouter.post("/claim",
             `SELECT id FROM participants WHERE token_hash = $1`,
             [hashed]
         )
-        if (!participant.rows[0].id) {
+        if (!participant.rows.length === 0) {
             return res.status(400).json({error: "Participant Doesnt Exist"})
         }
         const participantId = participant.rows[0].id
@@ -335,7 +344,7 @@ receiptsRouter.post("/claim",
             return res.json({created:true,createdClaims:insertedItems,venmoLink:link})
         } catch (err) {
             await client.query("ROLLBACK")
-            return res.status(400).json({error: "claim failed"})
+            return res.status(400).json({error: "Item Already Claimed, Refreshing..."})
         } finally {
             client.release()
         }
@@ -345,16 +354,25 @@ receiptsRouter.post("/claim",
 receiptsRouter.post("/unclaim",
     async(req,res) => {
         const item = req.body.item
+        const receiptId = req.body.receiptId
         if (!validateItem(item)) {
             return res.status(400).json({ error: "Invalid Item" })
         }
+        if (!validateString(receiptId)) {
+            return res.status(400).json({ error: "Invalid Receipt Id" })
+        }
+
         const claims = await pool.query(
             `
                 DELETE FROM claims
                 WHERE receipt_item_id = $1
+                AND receipt_id = $2
                 RETURNING *
             `, [item.id]
         )
+        if (!claims.rows[0]) {
+            return res.status(400).json({error: "Couldn't Find Claimed Item"})
+        }
         return res.json({removed: claims.rows[0]})
     }
 )
@@ -367,15 +385,15 @@ receiptsRouter.patch("/update",
         const venmoHandle = validateString(req.body.venmoHandle)
 
         if (!creatorName || !venmoHandle) {
-            return res.status(400).json({ error: "Invalid creator name or venmo handle" })
+            return res.status(400).json({ error: "Invalid Creator Name or Venmo Handle" })
         } 
         for (const item of items) {
             if (!validateItem(item)) {
-                return res.status(400).json({ error: "Invalid item in claimed items" })
+                return res.status(400).json({ error: "Invalid Item in Claimed Items" })
             }
         }
         if (items.length > 100) {
-            return res.status(400).json({ error: "Too many items" });
+            return res.status(400).json({ error: "Too Many Items" });
         }
         if (!validateReceipt(receipt)) {
             return res.status(400).json({ error: "Invalid Receipt"})
@@ -451,7 +469,7 @@ receiptsRouter.patch("/update",
             return res.json({updated:true})
         } catch (err) {
             await client.query("ROLLBACK")
-            return res.status(400).json({error : "update failed"})
+            return res.status(400).json({error : "Update Failed"})
         } finally {
             client.release()
         }
