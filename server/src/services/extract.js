@@ -5,8 +5,8 @@ dotenv.config();
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 // Note to do later, reduce the amount of tokens in the prompt while maintaining accuracy
-  function buildPrompt(ocrText) {
-    return `
+function buildPrompt(ocrText) {
+  return `
   Extract structured JSON data from a line by line text of a receipt(ocr)
 
   RECEIPT TEXT: 
@@ -57,14 +57,17 @@ const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   Input line: "1 Coffee 3.00" => {name:"Coffee", quantity:1, price:3.00, unit_price:3.00}
   `.trim();
   }
+
   
 export async function extractReceipt (ocrText) {
     
     const prompt = buildPrompt(ocrText)
 
     const response = await client.responses.create({
-        model: "gpt-5-nano",
-        input: prompt
+      model: "gpt-5-nano",
+      reasoning: { effort: "minimal" },   // biggest latency lever
+      text: { verbosity: "low" },         // shorter answers => faster          
+      input: prompt
     })
 
     const outText = response.output_text ?? response.output?.map(o => o.content?.map(c => c.text).join("")).join("") ?? ""

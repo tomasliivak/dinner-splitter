@@ -116,10 +116,15 @@ receiptsRouter.post(
             .resize({ width: 2000, withoutEnlargement: true })
             .jpeg({ quality: 90 })
             .toBuffer()
+
+        console.time("total")
+        console.time("ocr")
         const text = await ocrReceiptImageBuffer(normalizedBuffer)
-        
+        console.timeEnd("ocr")
+        console.time("llm")
         const receipt = await extractReceipt(text)
-        
+        console.timeEnd("llm")
+        console.timeEnd("total")
         const share_key = crypto.randomBytes(16).toString("hex")
         
         const client = await pool.connect()

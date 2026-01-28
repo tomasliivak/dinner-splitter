@@ -42,6 +42,62 @@ function getLines(words,median) {
   }
   return lines
 } 
+function trimOcrLinesForReceipt(lines, maxChars = 6000) {
+  const clean = lines
+    .map(l => (typeof l === "string" ? l : l?.text ?? ""))  // <-- get text
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  const keep = [];
+  let charCount = 0;
+
+  const push = (line) => {
+    if (charCount + line.length + 1 > maxChars) return false;
+    keep.push(line);
+    charCount += line.length + 1;
+    return true;
+  };
+
+  // header for merchant
+  for (let i = 0; i < Math.min(8, clean.length); i++) {
+    if (!push(clean[i])) break;
+  }
+
+  for (const line of clean.slice(8)) {
+    const lower = line.toLowerCase();
+
+    const hasPrice = /\d+\.\d{2}/.test(line) || /\$\s*\d/.test(line);
+
+    const isTotalLine =
+      lower.includes("total") ||
+      lower.includes("subtotal") ||
+      lower.includes("sub total") ||
+      lower.includes("tax") ||
+      lower.includes("tip") ||
+      lower.includes("balance");
+
+    const obviousGarbage =
+      lower.includes("thank") ||
+      lower.includes("visit") ||
+      lower.includes("www") ||
+      lower.includes("http") ||
+      lower.includes("server") ||
+      lower.includes("table") ||
+      lower.includes("order") ||
+      lower.includes("guest") ||
+      lower.includes("date") ||
+      lower.includes("time") ||
+      lower.includes("cashier") ||
+      /\(\d{3}\)/.test(line);
+
+    if ((hasPrice || isTotalLine) && !obviousGarbage) {
+      if (!push(line)) break;
+    }
+  }
+
+  return keep.join("\n");
+}
+
 
 function linesToString(lines) {
   let sortedLines = lines.sort((a, b) => a.y - b.y)
@@ -74,10 +130,10 @@ export async function ocrReceiptImageBuffer(imageBuffer) {
   }
 
   const median = getMedianHeight(words)
-  const lines = getLines(words,median)
+  const lines = getLines(words,median).sort((a, b) => a.y - b.y)
   
   const ocrString = linesToString(lines)
-  
+  //const ocrString = trimOcrLinesForReceipt(lines)
   
   // const fullText = result?.fullTextAnnotation?.text ?? "";
   return ocrString;
