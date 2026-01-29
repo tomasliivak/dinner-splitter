@@ -197,6 +197,7 @@ receiptsRouter.post(
             return res.json({created:true,receipt_id:receiptRow.id,share_key:share_key})
         } catch (err) {
             await client.query("ROLLBACK")
+            console.log(err)
             res.status(400).json({error:"Upload Failed"})
         } finally {
             client.release()
