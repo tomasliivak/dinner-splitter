@@ -3,7 +3,7 @@ import dotenv from "dotenv"
 dotenv.config()
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-
+console.log(process.env.OPENAI_API_KEY)
 // Note to do later, reduce the amount of tokens in the prompt while maintaining accuracy
 function buildPrompt(ocrText) {
   return `
@@ -61,7 +61,7 @@ function buildPrompt(ocrText) {
   
   export async function extractReceipt(ocrText) {
     const prompt = buildPrompt(ocrText)
-    console.log(ocrText)
+    
     async function call(promptText) {
       const res = await client.responses.create({
         model: "gpt-5-nano",
@@ -79,13 +79,13 @@ function buildPrompt(ocrText) {
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
         
+        
         const outText = await call(
           attempt === 0
             ? prompt
             : `${prompt}\n\nPrevious attempt failed: ${lastError}\nTry again.`
         )
-        console.log(outText)
-        
+
         const cleaned = outText
           .replace(/^```json/i, "")
           .replace(/```$/, "")
