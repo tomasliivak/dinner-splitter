@@ -78,13 +78,14 @@ function buildPrompt(ocrText) {
     // 2 attempts max (normal + retry) Though rn the retry attempt is kinda shoddy that it might not work anyways
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
-        console.log("it ran the loop")
+        
         const outText = await call(
           attempt === 0
             ? prompt
             : `${prompt}\n\nPrevious attempt failed: ${lastError}\nTry again.`
         )
-  
+        console.log(outText)
+        
         const cleaned = outText
           .replace(/^```json/i, "")
           .replace(/```$/, "")
@@ -118,7 +119,7 @@ function buildPrompt(ocrText) {
         lastError = String(err)
       }
     }
-    console.log("something failed")
+    
     return undefined
   }
   
