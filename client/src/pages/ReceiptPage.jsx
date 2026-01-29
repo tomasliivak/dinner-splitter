@@ -165,6 +165,7 @@ export default function ReceiptPage() {
 
         if (!res.ok) {
             loadReceipt()
+            alert(data.error || "server error")
             toast.error(data.error || "Server error")
             return
         }
