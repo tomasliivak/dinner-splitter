@@ -81,8 +81,8 @@ function validateReceipt(receipt) {
 
 function createVenmoLink(venmoHandle, total) {
     const params = new URLSearchParams({
-        txn: "pay",
         recipients: venmoHandle,
+        txn: "pay",
         amount: total.toFixed(2),
         note: "usedivvy.app"
     })

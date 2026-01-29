@@ -75,18 +75,18 @@ export default function ReceiptPage() {
     async function loadReceipt() {
         setActiveItems([])
         const data = await getReceipt()
-            setClaimedItems(data.claims)
-            setItems(data.items)
-            setReceipt(data.receipt)
-            setTaxPercent(data.receipt.tax/data.receipt.subtotal)
-            setTipPercent(data.receipt.tip/data.receipt.subtotal)
-            let id = localStorage.getItem("participant_id");
-            if (!id) {
+        setClaimedItems(data.claims)
+        setItems(data.items)
+        setReceipt(data.receipt)
+        setTaxPercent(data.receipt.tax/data.receipt.subtotal)
+        setTipPercent(data.receipt.tip/data.receipt.subtotal)
+        let id = localStorage.getItem("participant_id");
+        if (!id) {
             await registerParticipant(data.receipt.id)
-            }
-            else {
-                setParticipantId(id)
-            }
+        }
+        else {
+            setParticipantId(id)
+        }
     }
     useEffect(() => {
         loadReceipt()
@@ -172,7 +172,13 @@ export default function ReceiptPage() {
 
         loadReceipt()
         setActiveItems([])
-        window.location.href = data.venmoLink
+        const isTouch = window.matchMedia("(pointer: coarse)").matches;
+        if(isTouch) {
+            window.location.href = data.venmoLink
+        }
+        else {
+            window.open(data.venmoLink, "_blank")
+        }
     }
     
     function renderItems() {
@@ -273,7 +279,7 @@ export default function ReceiptPage() {
                 </button>
                 {showClaimed ? <p id="remove-header">Click on item to remove claim</p> : undefined}
                 {showClaimed ? renderClaimedItems() : undefined}
-                <div id="items-div">
+                <div className="items-div">
                 </div>
                 <h3 id="receipt-totals-header">Remaining Receipt Totals</h3>
                 <div className="totals-item">
@@ -292,7 +298,7 @@ export default function ReceiptPage() {
                     <h4>Balance Due:</h4>
                     <p>${receipt ?(Math.round((receipt.total-(claimedSubtotal + claimedSubtotal*taxPercent + claimedSubtotal*tipPercent))*100)/100).toFixed(2): "total"}</p>
                 </div>
-                <div id="items-div">
+                <div className="items-div">
                 </div>
                 <h3 id="receipt-totals-header">Review Selected Items Totals</h3>
                 <div className="totals-item">

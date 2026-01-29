@@ -244,7 +244,7 @@ export default function EditorPage() {
             </div>
             : 
             <button id="add-item" type="button" onClick={e => (setCreate(true))}>Add Item</button>}
-            <div id="items-div">
+            <div className="items-div">
             </div>
             <h3 id="receipt-totals-header">Receipt Totals</h3>
             <div className="totals-item">
@@ -284,7 +284,7 @@ export default function EditorPage() {
                 <h4>Balance Due:</h4>
                 <p>${receipt ? Math.round((receipt.total)*100)/100: "total"}</p>
             </div>
-            <div id="items-div">
+            <div className="items-div">
             </div>
             <div className="editor-input-div">
                 <input type="text" value={creatorName} onChange={e => setCreatorName(e.target.value)}
