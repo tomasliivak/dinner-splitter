@@ -5,7 +5,10 @@ import ReceiptIcon from "../components/ReceiptIcon.jsx"
 import "./ReceiptPage.css"
 
 import ClaimedReceiptItem from "../components/ClaimedReceiptItem.jsx"
-const API_URL = import.meta.env.NODE == "production" ? import.meta.env.VITE_API_URL : "http://localhost:3000"
+const API_URL = import.meta.env.PROD
+  ? import.meta.env.VITE_API_URL
+  : "http://localhost:3000";
+
 export default function ReceiptPage() {
     // this probably would break if something put in a random url for now. 
     // also would break if some just went to /r with nothing else with it

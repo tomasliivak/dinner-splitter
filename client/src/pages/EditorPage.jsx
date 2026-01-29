@@ -5,7 +5,10 @@ import EditorItem from "../components/EditorItem.jsx"
 import { useNavigate } from "react-router-dom"
 import "./ReceiptPage.css"
 import "./EditorPage.css"
-const API_URL = import.meta.env.NODE == "production" ? import.meta.env.VITE_API_URL : "http://localhost:3000"
+const API_URL = import.meta.env.PROD
+  ? import.meta.env.VITE_API_URL
+  : "http://localhost:3000";
+
 // Editor Page Notes: Need to add venmo handle validation. Make page look good as well...
 // Some of the stuff (like the delete button) may not be mobile sized(too small to press)
 // This math is still messed up 
