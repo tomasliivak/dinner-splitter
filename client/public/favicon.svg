@@ -1,21 +1,34 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-
   <!-- background -->
   <rect x="32" y="32" width="448" height="448" rx="110" fill="#EF3D50"/>
 
-  <!-- white tile -->
-  <rect x="140" y="140" width="232" height="232" rx="44" fill="#FFFFFF"/>
+  <!-- D -->
+  <path
+    d="M170 150
+       H248
+       C322 150 366 194 366 256
+       C366 318 322 362 248 362
+       H170
+       Z
+       M220 196
+       V316
+       H248
+       C292 316 316 292 316 256
+       C316 220 292 196 248 196
+       Z"
+    fill="#FFFFFF"
+    fill-rule="evenodd"
+  />
 
-  <!-- thicker diagonal split -->
+  <!-- slash (same color as background to look cut out) -->
   <rect
-    x="228"
-    y="90"
-    width="56"
-    height="332"
-    rx="28"
+    x="232"
+    y="84"
+    width="52"
+    height="344"
+    rx="26"
     fill="#EF3D50"
     transform="rotate(35 256 256)"
   />
-
 </svg>
 
