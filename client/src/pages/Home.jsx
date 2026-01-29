@@ -5,7 +5,9 @@ import { useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import  LoadingDots from "../components/LoadingDots"
 import receiptMockup from "../assets/receipt-mockup.png"
-import toast from "react-hot-toast";
+import toast from "react-hot-toast"
+const API_URL = import.meta.env.NODE == "production" ? import.meta.env.VITE_API_URL : "http://localhost:3000"
+
 
 import "./Home.css"
 export default function Home() {
@@ -21,7 +23,7 @@ export default function Home() {
         let id = crypto.randomUUID()
         localStorage.setItem("participant_id", id)
         setParticipantId(id)
-        const res = await fetch("http://localhost:3000/api/receipts/register", {
+        const res = await fetch(`${API_URL}/api/receipts/register`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -48,7 +50,7 @@ export default function Home() {
         formData.append("receipt", file)
         formData.append("creatorId", participantId)
 
-        const res = await fetch("http://localhost:3000/api/receipts/scan", {
+        const res = await fetch(`${API_URL}/api/receipts/scan`, {
             method: "POST",
             body: formData
             })

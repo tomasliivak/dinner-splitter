@@ -5,7 +5,7 @@ import ReceiptIcon from "../components/ReceiptIcon.jsx"
 import "./ReceiptPage.css"
 
 import ClaimedReceiptItem from "../components/ClaimedReceiptItem.jsx"
-
+const API_URL = import.meta.env.NODE == "production" ? import.meta.env.VITE_API_URL : "http://localhost:3000"
 export default function ReceiptPage() {
     // this probably would break if something put in a random url for now. 
     // also would break if some just went to /r with nothing else with it
@@ -31,7 +31,7 @@ export default function ReceiptPage() {
     // Note to later self: Honestly not particularly sure if the tip math is accurate/if the tip is being counted towards the total by the llm. e.i need to do testing with receipts that have tip written
     // Need to add better looking share button
     async function getReceipt() {
-        const res = await fetch(`http://localhost:3000/api/receipts/retrieve?${params.toString()}`, {
+        const res = await fetch(`${API_URL}/api/receipts/retrieve?${params.toString()}`, {
             method: "GET"
             
         }
@@ -49,7 +49,7 @@ export default function ReceiptPage() {
         let id = crypto.randomUUID()
         localStorage.setItem("participant_id", id)
         setParticipantId(id)
-        const res = await fetch("http://localhost:3000/api/receipts/register", {
+        const res = await fetch(`${API_URL}/api/receipts/register`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -152,7 +152,7 @@ export default function ReceiptPage() {
     },[activeItems])
     // just realized the URL payment isnt correct cus it doesnt include tax or tip. 
     async function claimItems(items) {
-        const res = await fetch("http://localhost:3000/api/receipts/claim", {
+        const res = await fetch(`${API_URL}/api/receipts/claim`, {
             method: "POST",
             headers: { "Content-Type": "application/json", "Participant-Token" : participantId },
             body: JSON.stringify({claimedItems: items, venmoHandle: receipt.venmo_handle, taxPercent: taxPercent, tipPercent: tipPercent })
@@ -194,7 +194,7 @@ export default function ReceiptPage() {
     }
 
     async function removeClaimedItem(item) {
-        const res = await fetch("http://localhost:3000/api/receipts/unclaim",
+        const res = await fetch(`${API_URL}/api/receipts/unclaim`,
             {
                 method: "POST",
                 headers: { "Content-Type": "application/json"},

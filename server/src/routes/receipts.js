@@ -368,7 +368,7 @@ receiptsRouter.post("/unclaim",
                 WHERE receipt_item_id = $1
                 AND receipt_id = $2
                 RETURNING *
-            `, [item.id]
+            `, [item.id,receiptId]
         )
         if (!claims.rows[0]) {
             return res.status(400).json({error: "Couldn't Find Claimed Item"})

@@ -5,7 +5,7 @@ import EditorItem from "../components/EditorItem.jsx"
 import { useNavigate } from "react-router-dom"
 import "./ReceiptPage.css"
 import "./EditorPage.css"
-
+const API_URL = import.meta.env.NODE == "production" ? import.meta.env.VITE_API_URL : "http://localhost:3000"
 // Editor Page Notes: Need to add venmo handle validation. Make page look good as well...
 // Some of the stuff (like the delete button) may not be mobile sized(too small to press)
 // This math is still messed up 
@@ -33,7 +33,7 @@ export default function EditorPage() {
       })
     // get the receipt data and the receipt items
     async function getReceipt() {
-        const res = await fetch(`http://localhost:3000/api/receipts/retrieve?${params.toString()}`, {
+        const res = await fetch(`${API_URL}/api/receipts/retrieve?${params.toString()}`, {
             method: "GET"
         }
         )
@@ -43,12 +43,12 @@ export default function EditorPage() {
             toast.error(data.error || "Server error")
             return
         }
-        
+
         return data
     }
     // need to add protection against negative quantities
     async function updateReceipt() {
-        const res = await fetch("http://localhost:3000/api/receipts/update", {
+        const res = await fetch(`${API_URL}/api/receipts/update`, {
             method: "PATCH",
             headers: {
                 "Content-Type": "application/json",
