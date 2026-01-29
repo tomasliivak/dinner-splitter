@@ -306,7 +306,7 @@ export default function EditorPage() {
                 />
                 <div>
                     <p>Venmo Handle (no @, no spaces)</p>
-                    <button type="button" onClick={(e => window.open("https://venmo.com/?txn=pay&recipients=" + venmoHandle +"&note=Venmo Handle Testing", "_blank"))}>Test Venmo Handle</button>
+                    <button type="button" onClick={(e => window.open("https://venmo.com/?txn=pay&recipients=" + venmoHandle +"&note=Test", "_blank"))}>Test Venmo Handle</button>
                 </div>
             </div>
             <button className="save-button" type="submit">Save Receipt</button>
