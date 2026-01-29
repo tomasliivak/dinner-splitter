@@ -111,7 +111,6 @@ export default function Home() {
                     ref={fileInputRef}
                     type="file"
                     accept="image/*"
-                    capture="environment"
                     hidden
                     onChange={handleFileUpload}
                     name="receipt"

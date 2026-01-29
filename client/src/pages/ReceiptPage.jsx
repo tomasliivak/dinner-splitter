@@ -230,7 +230,7 @@ export default function ReceiptPage() {
           try {
             await navigator.share({
               title: `Split this receipt from ${receipt.merchant_name}`,
-              text: "Join and claim your items:",
+              text: `Split this receipt from ${receipt.merchant_name}`,
               url
             });
             return;
