@@ -53,6 +53,7 @@
 #show-claimed-btn {
     display: flex;
     background: white;
+    color:black;
     border: 1px transparent;
     justify-content: left;
     padding: 8px;

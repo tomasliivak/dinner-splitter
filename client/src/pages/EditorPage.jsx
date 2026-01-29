@@ -97,9 +97,12 @@ export default function EditorPage() {
             // potentially a problem if the llm returns like a decimal quantity for whatever reason
             data.items = data.items.map(item => ({...item,quantity:Math.floor(item.quantity),client_id: crypto.randomUUID()}))
             setItems(data.items)
-            setReceipt(data.receipt)
+            const tax = data.receipt.tax ? Number(data.receipt.tax) : 0
+            const tip = data.receipt.tip ? Number(data.receipt.tip) : 0
+            const subtotal = data.receipt.subtotal ? Number(data.receipt.subtotal) : 0
+            setReceipt({...data.receipt, total: subtotal+tax+tip})
             setTaxPercent(data.receipt.subtotal ? (data.receipt.tax || 0) / data.receipt.subtotal : 0)
-            setTipPercent(data.receipt.tip/data.receipt.subtotal)
+            setTipPercent(data.receipt.tip && data.receipt.subtotal ? data.receipt.tip/data.receipt.subtotal : 0)
     }
     useEffect(() => {
         loadReceipt()
