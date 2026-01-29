@@ -73,6 +73,7 @@ export default function ReceiptPage() {
     // handles startup/calling to get the initial receipt and will also probably be used for refreshes later
     // need to add check for a proper link. If not proper link, re-nav to error page. 
     async function loadReceipt() {
+        setActiveItems([])
         const data = await getReceipt()
             setClaimedItems(data.claims)
             setItems(data.items)
