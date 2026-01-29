@@ -3,7 +3,7 @@ import dotenv from "dotenv"
 dotenv.config()
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-console.log(process.env.OPENAI_API_KEY)
+
 // Note to do later, reduce the amount of tokens in the prompt while maintaining accuracy
 function buildPrompt(ocrText) {
   return `
@@ -79,13 +79,14 @@ function buildPrompt(ocrText) {
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
         
-        
+        console.time("llm_call");
         const outText = await call(
           attempt === 0
             ? prompt
             : `${prompt}\n\nPrevious attempt failed: ${lastError}\nTry again.`
         )
-
+        console.timeEnd("llm_call");
+        
         const cleaned = outText
           .replace(/^```json/i, "")
           .replace(/```$/, "")
