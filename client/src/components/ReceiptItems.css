@@ -6,12 +6,14 @@
     align-items: center;
     justify-content: left;
     margin: 2px;
-    margin-bottom: 8px
+    margin-bottom: 9px;
+    padding: 4px;
 }
 @media (min-width: 900px) {
     .receipt-item {
         margin: 2px;
         margin-bottom: 2px;
+        padding: 0px;
     }
   }
 .receipt-item > p {
