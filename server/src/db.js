@@ -1,15 +1,20 @@
 import pg from "pg";
 const { Pool } = pg;
 
-if (!process.env.DATABASE_URL) throw new Error("Missing DATABASE_URL");
+if (!process.env.DATABASE_URL) {
+  throw new Error("Missing DATABASE_URL");
+}
 
-const isLocal =
-  process.env.DATABASE_URL.includes("localhost") ||
-  process.env.DATABASE_URL.includes("127.0.0.1");
+const isProd = process.env.NODE_ENV === "production";
 
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: isLocal ? false : { rejectUnauthorized: false },
+
+  // Local Postgres → no SSL
+  // Render → requires SSL but RDS cert isn't trusted → disable verification
+  ssl: isProd
+    ? { rejectUnauthorized: false }
+    : false,
 });
 
 
