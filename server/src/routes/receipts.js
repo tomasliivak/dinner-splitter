@@ -106,10 +106,10 @@ receiptsRouter.post(
         const creatorId = validateString(req.body.creatorId)
 
         if (!creatorId) {
-            return res.status(400).json({error: "Invalid creatorId"})
+            return res.status(400).json({error: "Invalid Creator Id"})
         }
-        console.log(`Creator Id: ${creatorId}`)
         
+
         const normalizedBuffer = await sharp(req.file.buffer)
             .rotate()
             .resize({ width: 2000, withoutEnlargement: true })

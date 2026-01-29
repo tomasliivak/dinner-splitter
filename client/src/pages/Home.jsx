@@ -21,10 +21,8 @@ export default function Home() {
     const [participantId, setParticipantId] = useState()
     const navigate = useNavigate()
     // technically no way to fix this client side if it breaks but it shouldnt?
-    async function registerParticipant(receiptId) {
-        let id = crypto.randomUUID()
+    async function registerParticipant(receiptId, id) {
         localStorage.setItem("participant_id", id)
-        setParticipantId(id)
         const res = await fetch(`${API_URL}/api/receipts/register`, {
             method: "POST",
             headers: {
@@ -48,9 +46,11 @@ export default function Home() {
         const file = e.target.files[0]
         if (!file) return
         setLoading(true)
+        // 
+        let id = crypto.randomUUID()
         const formData = new FormData()
         formData.append("receipt", file)
-        formData.append("creatorId", participantId)
+        formData.append("creatorId", id)
 
         const res = await fetch(`${API_URL}/api/receipts/scan`, {
             method: "POST",
@@ -65,6 +65,7 @@ export default function Home() {
             setLoading(false)
             return
         }
+        registerParticipant(data.receipt_id, id)
 
         e.target.value = null
         setReceiptId(data.receipt_id)
@@ -80,10 +81,11 @@ export default function Home() {
         }
       }, [ready, navigate])
     
+    /*
     async function onLoad() {
         let id = localStorage.getItem("participant_id");
             if (!id) {
-            await registerParticipant(data.receipt.id)
+
             }
             else {
                 setParticipantId(id)
@@ -92,7 +94,7 @@ export default function Home() {
     useEffect(() => {
         onLoad()
     },[]) 
-
+    */
     return (
         <section id="home">
                 <div className="home-text">

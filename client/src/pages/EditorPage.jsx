@@ -11,7 +11,7 @@ const API_URL = import.meta.env.PROD
 
 // Editor Page Notes: Need to add venmo handle validation. Make page look good as well...
 // Some of the stuff (like the delete button) may not be mobile sized(too small to press)
-// This math is still messed up 
+// This math is still messed up. YEAH SOMETHING WRONG WITH THE TIP. WHEN TIP IS INCLUDED, IT BREAKS
 export default function EditorPage() {
     // this probably would break if something put in a random url for now. 
     // also would break if some just went to /r with nothing else with it
