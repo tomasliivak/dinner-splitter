@@ -61,7 +61,7 @@ function buildPrompt(ocrText) {
   
   export async function extractReceipt(ocrText) {
     const prompt = buildPrompt(ocrText)
-  
+    console.log(ocrText)
     async function call(promptText) {
       const res = await client.responses.create({
         model: "gpt-5-nano",
@@ -78,6 +78,7 @@ function buildPrompt(ocrText) {
     // 2 attempts max (normal + retry) Though rn the retry attempt is kinda shoddy that it might not work anyways
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
+        console.log("it ran the loop")
         const outText = await call(
           attempt === 0
             ? prompt
@@ -117,7 +118,7 @@ function buildPrompt(ocrText) {
         lastError = String(err)
       }
     }
-    
+    console.log("something failed")
     return undefined
   }
   
