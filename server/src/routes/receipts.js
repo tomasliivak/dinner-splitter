@@ -19,21 +19,19 @@ const scanLimiter = rateLimit({
     legacyHeaders: false,
     message: { error: "Too many scans. Try again later." },
   })
-function validateString(value, {min = 0, max = 100, regex } = {}) {
-    if (typeof value !== "string") {
-        return undefined
-    }
-    const trimmed = value.trim();
+const badLiterals = new Set(["undefined", "null"]);
 
-    if (trimmed.length < min || trimmed.length > max) {
-        return undefined
-    }
+function validateString(value, { min = 0, max = 100, regex } = {}) {
+if (typeof value !== "string") return undefined;
 
-    if (regex && !regex.test(trimmed)) {
-        return undefined
-    }
+const trimmed = value.trim();
+if (!trimmed) return undefined;
+if (badLiterals.has(trimmed.toLowerCase())) return undefined;
 
-    return trimmed;
+if (trimmed.length < min || trimmed.length > max) return undefined;
+if (regex && !regex.test(trimmed)) return undefined;
+
+return trimmed;
 }
 function isValidNumber(x, { min = -Infinity, max = Infinity } = {}) {
     return typeof x === "number" && Number.isFinite(x) && x >= min && x <= max
@@ -110,7 +108,8 @@ receiptsRouter.post(
         if (!creatorId) {
             return res.status(400).json({error: "Invalid creatorId"})
         }
-
+        console.log(`Creator Id: ${creatorId}`)
+        
         const normalizedBuffer = await sharp(req.file.buffer)
             .rotate()
             .resize({ width: 2000, withoutEnlargement: true })
