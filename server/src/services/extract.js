@@ -80,13 +80,22 @@ function buildPrompt(ocrText) {
       try {
         
         console.time("llm_call");
-        const outText = await call(
-          attempt === 0
-            ? prompt
-            : `${prompt}\n\nPrevious attempt failed: ${lastError}\nTry again.`
-        )
-        console.timeEnd("llm_call");
-        
+        try {
+          const outText = await call(
+            attempt === 0
+              ? prompt
+              : `${prompt}\n\nPrevious attempt failed: ${lastError}\nTry again.`
+          );
+          console.log("outText length:", outText?.length);
+          console.log(outText); // maybe too big, but ok for now
+        } catch (e) {
+          console.error("LLM call failed:", e);
+          throw e; // or handle with res.status(500).json(...)
+        } finally {
+          console.timeEnd("llm_call");
+        }
+
+
         const cleaned = outText
           .replace(/^```json/i, "")
           .replace(/```$/, "")
