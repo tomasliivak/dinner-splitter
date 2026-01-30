@@ -12,6 +12,7 @@ const allowedOrigins = [
   "http://localhost:5173",
   "https://www.usedivvy.app",
   "https://usedivvy.app",
+  "https://divvy-psi.vercel.app"
 ];
 
 app.use(cors({
