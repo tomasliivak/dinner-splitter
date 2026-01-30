@@ -84,7 +84,7 @@ function createVenmoLink(venmoHandle, total) {
         recipients: venmoHandle,
         txn: "pay",
         amount: total.toFixed(2),
-        note: "usedivvy.app"
+        note: "www.usedivvy.app"
     })
 
     return `https://venmo.com/?${params.toString()}`

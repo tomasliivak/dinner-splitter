@@ -8,20 +8,20 @@ import { receiptsRouter } from "./routes/receipts.js"
 
 const app = express()
 app.set("trust proxy", 1)
-/*change cors once I deploy vercel 
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://YOUR_VERCEL_DOMAIN.vercel.app",
+  "https://www.usedivvy.app",
+  "https://usedivvy.app",
 ];
 
 app.use(cors({
   origin: (origin, cb) => {
-    if (!origin) return cb(null, true); // allows curl/postman
+    if (!origin) return cb(null, false); // blocks curl/postman (optional)
     cb(null, allowedOrigins.includes(origin));
-  }
-}));
-*/
-app.use(cors())
+  },
+  credentials: true,
+}))
+
 app.use(express.json({ limit: "20kb" }))
 
 const generalLimiter = rateLimit({
