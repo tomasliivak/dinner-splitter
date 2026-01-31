@@ -20,7 +20,7 @@ export default function Home() {
     const [loading, setLoading] = useState(false)
     const [participantId, setParticipantId] = useState()
     const navigate = useNavigate()
-    // technically no way to fix this client side if it breaks but it shouldnt?
+    // technically no way to fix this client side atm if it breaks but it shouldnt?
     async function registerParticipant(receiptId, id) {
         localStorage.setItem("participant_id", id)
         const res = await fetch(`${API_URL}/api/receipts/register`, {
@@ -40,6 +40,7 @@ export default function Home() {
             toast.error(data.error || "Server error")
             return
         }
+          
     }
     async function handleFileUpload(e) {
         // upload file to backend
@@ -66,7 +67,10 @@ export default function Home() {
             return
         }
         registerParticipant(data.receipt_id, id)
+        
+        posthog.identify(id, { ever_creator: true })
 
+        posthog.capture("receipt_uploaded")
         e.target.value = null
         setReceiptId(data.receipt_id)
         setKey(data.share_key)

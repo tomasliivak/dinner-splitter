@@ -69,6 +69,7 @@ export default function EditorPage() {
             toast.error(data.error || "Server error")
             return
         }
+        posthog.capture("Receipt Draft Saved")
         setReady(true)
     }
     /*these are technically not done. Need to also edit the receipt values 

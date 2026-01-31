@@ -69,6 +69,8 @@ export default function ReceiptPage() {
             toast.error(data.error || "Server error")
             return
         }
+        posthog.identify(id, {})
+        posthog.capture("joined_receipt", { context_role: "participant" })
     }
     // handles startup/calling to get the initial receipt and will also probably be used for refreshes later
     // need to add check for a proper link. If not proper link, re-nav to error page. 
@@ -86,6 +88,7 @@ export default function ReceiptPage() {
         }
         else {
             setParticipantId(id)
+            posthog.identify(id, {})
         }
     }
     useEffect(() => {
@@ -169,7 +172,7 @@ export default function ReceiptPage() {
             toast.error(data.error || "Server error")
             return
         }
-
+        posthog.capture("items_claimed/venmo pay clicked")
         loadReceipt()
         setActiveItems([])
         const isTouch = window.matchMedia("(pointer: coarse)").matches;
@@ -224,6 +227,7 @@ export default function ReceiptPage() {
         setClaimedItems(newClaimed)
     }
     async function handleShare() {
+        posthog.capture("Shared receipt")
         const url = window.location.href;
       
         if (navigator.share) {
