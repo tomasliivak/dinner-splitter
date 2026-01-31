@@ -6,6 +6,8 @@ import { useNavigate } from "react-router-dom"
 import  LoadingDots from "../components/LoadingDots"
 import receiptMockup from "../assets/receipt-mockup.png"
 import toast from "react-hot-toast"
+import posthog from "posthog-js"
+
 const API_URL = import.meta.env.PROD
   ? import.meta.env.VITE_API_URL
   : "http://localhost:3000";
@@ -67,7 +69,7 @@ export default function Home() {
             return
         }
         registerParticipant(data.receipt_id, id)
-        
+
         posthog.identify(id, { ever_creator: true })
 
         posthog.capture("receipt_uploaded")

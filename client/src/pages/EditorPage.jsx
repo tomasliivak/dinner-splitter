@@ -5,6 +5,8 @@ import EditorItem from "../components/EditorItem.jsx"
 import { useNavigate } from "react-router-dom"
 import "./ReceiptPage.css"
 import "./EditorPage.css"
+import posthog from "posthog-js"
+
 const API_URL = import.meta.env.PROD
   ? import.meta.env.VITE_API_URL
   : "http://localhost:3000";

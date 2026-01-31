@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo } from "react"
 import ReceiptItem from "../components/ReceiptItem.jsx"
 import ReceiptIcon from "../components/ReceiptIcon.jsx"
 import "./ReceiptPage.css"
+import posthog from "posthog-js"
 
 import ClaimedReceiptItem from "../components/ClaimedReceiptItem.jsx"
 const API_URL = import.meta.env.PROD
