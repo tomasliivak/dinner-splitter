@@ -3,6 +3,7 @@ import Home from "./pages/Home"
 import ReceiptPage from "./pages/ReceiptPage.jsx"
 import Header from "./components/Header.jsx"
 import EditorPage from "./pages/EditorPage.jsx"
+import ReviewPage from "./pages/ReviewPage.jsx"
 import { Toaster } from "react-hot-toast";
 import './App.css'
 
@@ -26,11 +27,11 @@ export default function App() {
           }
         }}
       />
-        <Header/>
         <main>
           <Routes>
             <Route path="/" element={<Home/>} />
             <Route path="/r/draft/:receiptId" element={<EditorPage/>}/>
+            <Route path="/r/pay/:receiptId" element={<ReviewPage/>} />
             <Route path="/r/:receiptId" element={<ReceiptPage />} />
           </Routes>
         </main>

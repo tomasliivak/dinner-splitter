@@ -219,6 +219,7 @@ receiptsRouter.get(
         }
         let items = []
         let claimedItems = []
+        let participantClaims = []
         // prolly should make this all one instance so if something fails it doesnt get messed up + the state of the dbs is all the same as it goes through it
         const result = await pool.query(
             `
@@ -285,7 +286,7 @@ receiptsRouter.post("/claim",
         const tipPercent = req.body.tipPercent
         const taxPercent = req.body.taxPercent
         const participantToken = validateString(req.get("Participant-Token"))
-
+        console.log(participantToken)
         if (!participantToken || !venmoHandle) {
             return res.status(400).json({error: "Invalid Participant Id or Venmo Handle"})
         }
@@ -308,10 +309,11 @@ receiptsRouter.post("/claim",
             `SELECT id FROM participants WHERE token_hash = $1`,
             [hashed]
         )
-        if (!participant.rows.length === 0) {
+        if (participant.rows.length === 0) {
             return res.status(400).json({error: "Participant Doesnt Exist"})
         }
         const participantId = participant.rows[0].id
+
         let total = 0
         for (const item of claimedItems) {
             total += Number(item.line_total)
@@ -344,7 +346,7 @@ receiptsRouter.post("/claim",
             return res.json({created:true,createdClaims:insertedItems,venmoLink:link})
         } catch (err) {
             await client.query("ROLLBACK")
-            return res.status(400).json({error: "Item Already Claimed, Refreshing..."})
+            return res.status(400).json({error: `Item Already Claimed, Refreshing...`})
         } finally {
             client.release()
         }
@@ -473,5 +475,38 @@ receiptsRouter.patch("/update",
         } finally {
             client.release()
         }
+    }
+)
+receiptsRouter.get("/pclaims",
+    async (req,res) => {
+        let participantClaims = []
+        const receiptId = validateString(req.query.receiptId)
+        const participantToken = validateString(req.query.id)
+        let hashed = hashToken(participantToken)
+
+        const participant = await pool.query(
+            `SELECT id FROM participants WHERE token_hash = $1`,
+            [hashed]
+        )
+        if (participant.rows.length === 0) {
+            return res.status(400).json({error: "Participant Doesnt Exist"})
+        }
+        const participantId = participant.rows[0].id
+
+        if (!receiptId || !participantId) {
+            return res.status(400).json({error:"Invalid receiptId or participantId"})
+        }
+
+        participantClaims = await pool.query(
+            `
+            SELECT *
+            FROM claims
+            WHERE receipt_id = $1
+            AND participant_id = $2
+            `,
+            [receiptId, participantId]
+        )
+
+        return res.json({participantClaims:participantClaims.rows})
     }
 )

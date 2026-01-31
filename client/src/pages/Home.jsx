@@ -7,6 +7,7 @@ import  LoadingDots from "../components/LoadingDots"
 import receiptMockup from "../assets/receipt-mockup.png"
 import toast from "react-hot-toast"
 import posthog from "posthog-js"
+import Header from "../components/Header.jsx"
 
 const API_URL = import.meta.env.PROD
   ? import.meta.env.VITE_API_URL
@@ -102,27 +103,30 @@ export default function Home() {
     },[]) 
     */
     return (
-        <section id="home">
-                <div className="home-text">
-                    <h1>Split your receipt in seconds</h1>
-                    <h2>Upload a photo, claim items, pay friends</h2>
-                </div>
-                <img src={receiptMockup} alt="Split a receipt by tapping items and paying with Venmo" className="hero-phone"/>
-                <div className="upload-cta">
-                    {loading && <LoadingDots/>}
-                    <button onClick={() => fileInputRef.current.click()}>
-                        Upload Receipt
-                </button>
-                    <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    hidden
-                    onChange={handleFileUpload}
-                    name="receipt"
-                    />
-                </div>
-            
-        </section>
+        <div>
+            <Header/>
+            <section id="home">
+                    <div className="home-text">
+                        <h1>Split your receipt in seconds</h1>
+                        <h2>Upload a photo, claim items, pay friends</h2>
+                    </div>
+                    <img src={receiptMockup} alt="Split a receipt by tapping items and paying with Venmo" className="hero-phone"/>
+                    <div className="upload-cta">
+                        {loading && <LoadingDots/>}
+                        <button onClick={() => fileInputRef.current.click()}>
+                            Upload Receipt
+                    </button>
+                        <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        hidden
+                        onChange={handleFileUpload}
+                        name="receipt"
+                        />
+                    </div>
+                
+            </section>
+        </div>
     )
 }

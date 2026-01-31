@@ -1,10 +1,11 @@
-import { useLocation } from "react-router-dom"
+import { useLocation, useNavigate } from "react-router-dom"
 import { useState, useEffect, useMemo } from "react"
 import ReceiptItem from "../components/ReceiptItem.jsx"
 import ReceiptIcon from "../components/ReceiptIcon.jsx"
 import "./ReceiptPage.css"
 import posthog from "posthog-js"
-
+import toast from "react-hot-toast"
+import Header from "../components/Header.jsx"
 import ClaimedReceiptItem from "../components/ClaimedReceiptItem.jsx"
 const API_URL = import.meta.env.PROD
   ? import.meta.env.VITE_API_URL
@@ -25,7 +26,8 @@ export default function ReceiptPage() {
     const [tipPercent, setTipPercent] = useState(0)
     const [claimedSubtotal, setClaimedSubtotal] = useState(0)
     const [activeItemsSubtotal, setActiveItemsSubtotal] = useState(0)
-
+    const [ready, setReady] = useState(false)
+    const navigate = useNavigate()
 
     const params = new URLSearchParams({
         receiptId,
@@ -113,6 +115,13 @@ export default function ReceiptPage() {
         claimItems(activeItems)
     }
     useEffect(() => {
+        if (ready) {
+            const nav = "/r/pay/" + receiptId + "?key=" + shareKey
+            navigate(nav)
+        }
+      }, [ready, navigate])
+      
+    useEffect(() => {
         const refresh = () => loadReceipt()
       
         const onVis = () => {
@@ -129,7 +138,7 @@ export default function ReceiptPage() {
       }, [loadReceipt])
 
     useMemo(() => {
-        if (claimedItems) {
+        if (claimedItems && items) {
             let claimedItemIds = new Set(claimedItems.map(prev => prev.receipt_item_id))
             let total = 0
             for (const item of items) {
@@ -174,15 +183,8 @@ export default function ReceiptPage() {
             return
         }
         posthog.capture("items_claimed/venmo pay clicked")
-        loadReceipt()
-        setActiveItems([])
-        const isTouch = window.matchMedia("(pointer: coarse)").matches;
-        if(isTouch) {
-            window.location.href = data.venmoLink
-        }
-        else {
-            window.open(data.venmoLink, "_blank")
-        }
+        
+        setReady(true)
     }
     
     function renderItems() {
@@ -248,6 +250,7 @@ export default function ReceiptPage() {
       // remove the outer div depending what I do
     return (
         <div>
+            <Header/>
             {receipt ? receipt.creator_id == participantId ?
                 <div className="context-header">
                     <div className="context-text-div">
@@ -305,7 +308,7 @@ export default function ReceiptPage() {
                 </div>
                 <div className="items-div">
                 </div>
-                <h3 id="receipt-totals-header">Review Selected Items Totals</h3>
+                <h3 id="receipt-totals-header">Selected Items Totals</h3>
                 <div className="totals-item">
                     <h4>Subtotal:</h4>
                     <p>${activeItems ? (Math.round(activeItemsSubtotal*100)/100).toFixed(2) : undefined}</p>
@@ -324,7 +327,7 @@ export default function ReceiptPage() {
                 </div>
                 <button disabled={activeItems.length < 1} onClick={() => {
                     payClick()
-                }} id = "venmo-btn">Pay With Venmo</button>
+                }} id = "venmo-btn">Review & Pay</button>
             </section>
         </div>
     )

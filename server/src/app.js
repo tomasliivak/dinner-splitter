@@ -13,7 +13,7 @@ const allowedOrigins = [
   "https://www.usedivvy.app",
   "https://usedivvy.app",
   "https://divvy-psi.vercel.app"
-];
+]
 
 app.use(cors({
   origin: (origin, cb) => {
@@ -40,8 +40,8 @@ app.use((req, res, next) => {
 })
 
 app.get("/health", async (req, res) => {
-  const r = await pool.query("SELECT 1 as ok");
-  res.json(r.rows[0]);
+  const r = await pool.query("SELECT 1 as ok")
+  res.json(r.rows[0])
 })
 
 app.use("/api/receipts", receiptsRouter)

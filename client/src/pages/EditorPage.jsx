@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom"
 import "./ReceiptPage.css"
 import "./EditorPage.css"
 import posthog from "posthog-js"
-
+import Header from "../components/Header.jsx"
 const API_URL = import.meta.env.PROD
   ? import.meta.env.VITE_API_URL
   : "http://localhost:3000";
@@ -201,6 +201,7 @@ export default function EditorPage() {
             e.preventDefault()
             updateReceipt()
             }}>
+        <Header/>
         <section className="receipt-page">
             <div id="column-receipt-topper">
                 <div id="receipt-top">
