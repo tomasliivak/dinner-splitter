@@ -346,7 +346,7 @@ receiptsRouter.post("/claim",
             return res.json({created:true,createdClaims:insertedItems,venmoLink:link})
         } catch (err) {
             await client.query("ROLLBACK")
-            return res.status(400).json({error: `Item Already Claimed, Refreshing...`})
+            return res.status(400).json({error: `Item Already Claimed, Refreshing...,${err} resulting from:${participantToken}}`})
         } finally {
             client.release()
         }
