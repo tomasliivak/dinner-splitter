@@ -27,6 +27,7 @@ export default function ReceiptPage() {
     const [claimedSubtotal, setClaimedSubtotal] = useState(0)
     const [activeItemsSubtotal, setActiveItemsSubtotal] = useState(0)
     const [ready, setReady] = useState(false)
+    const [claiming, setClaiming] = useState(false)
     const navigate = useNavigate()
 
     const params = new URLSearchParams({
@@ -169,6 +170,7 @@ export default function ReceiptPage() {
     },[activeItems])
     // just realized the URL payment isnt correct cus it doesnt include tax or tip. 
     async function claimItems(items) {
+        setClaiming(true)
         const res = await fetch(`${API_URL}/api/receipts/claim`, {
             method: "POST",
             headers: { "Content-Type": "application/json", "Participant-Token" : participantId },
@@ -184,6 +186,7 @@ export default function ReceiptPage() {
         }
         posthog.capture("items_claimed/venmo pay clicked")
         
+        setClaiming(false)
         setReady(true)
     }
     
@@ -325,7 +328,7 @@ export default function ReceiptPage() {
                     <h4>Total:</h4>
                     <p>${activeItems ? (Math.round((activeItemsSubtotal + activeItemsSubtotal*taxPercent + activeItemsSubtotal*tipPercent)*100)/100).toFixed(2): undefined}</p>
                 </div>
-                <button disabled={activeItems.length < 1} onClick={() => {
+                <button disabled={activeItems.length < 1 || claiming} onClick={() => {
                     payClick()
                 }} id = "venmo-btn">Review & Pay</button>
             </section>
