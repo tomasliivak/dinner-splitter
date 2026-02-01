@@ -219,7 +219,6 @@ receiptsRouter.get(
         }
         let items = []
         let claimedItems = []
-        let participantClaims = []
         // prolly should make this all one instance so if something fails it doesnt get messed up + the state of the dbs is all the same as it goes through it
         const result = await pool.query(
             `
@@ -314,8 +313,16 @@ receiptsRouter.post("/claim",
         }
         const participantId = participant.rows[0].id
 
-        let total = 0
+        let uniqueItems = []
+        let seen = new Set()
         for (const item of claimedItems) {
+            if (!seen.has(item.id)) {
+                seen.add(item.id)
+                uniqueItems.push(item)
+            }
+        }
+        let total = 0
+        for (const item of uniqueItems) {
             total += Number(item.line_total)
         }
         total += total*Number(tipPercent) + total*Number(taxPercent)
@@ -323,9 +330,9 @@ receiptsRouter.post("/claim",
         const client = await pool.connect()
         try {
             await client.query("BEGIN")
-            const insertedItems = []
+            let insertedItems = []
 
-            for (const item of claimedItems) {
+            for (const item of uniqueItems) {
                 if (item.quantity == null) {
                     item.quantity = 1
                 }
