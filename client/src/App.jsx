@@ -4,7 +4,8 @@ import ReceiptPage from "./pages/ReceiptPage.jsx"
 import Header from "./components/Header.jsx"
 import EditorPage from "./pages/EditorPage.jsx"
 import ReviewPage from "./pages/ReviewPage.jsx"
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "react-hot-toast"
+import ScrollToTop from "./components/ScrollToTop.jsx"
 import './App.css'
 
 export default function App() {
@@ -28,6 +29,7 @@ export default function App() {
         }}
       />
         <main>
+          <ScrollToTop/>
           <Routes>
             <Route path="/" element={<Home/>} />
             <Route path="/r/draft/:receiptId" element={<EditorPage/>}/>

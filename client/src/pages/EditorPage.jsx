@@ -201,7 +201,13 @@ export default function EditorPage() {
             e.preventDefault()
             updateReceipt()
             }}>
-        <Header/>
+            <Header/>
+            <div className="context-header">
+                <div className="context-text-div">
+                    <h4>Review your receipt</h4>
+                    <p>Check items, prices, and totals before continuing</p>
+                </div>
+            </div>
         <section className="receipt-page">
             <div id="column-receipt-topper">
                 <div id="receipt-top">
