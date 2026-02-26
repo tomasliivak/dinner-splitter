@@ -195,7 +195,7 @@ receiptsRouter.post(
             return res.json({created:true,receipt_id:receiptRow.id,share_key:share_key})
         } catch (err) {
             await client.query("ROLLBACK")
-            console.log(err)
+            
             res.status(400).json({error:"Upload Failed"})
         } finally {
             client.release()
@@ -284,7 +284,6 @@ receiptsRouter.post("/claim",
         const tipPercent = req.body.tipPercent
         const taxPercent = req.body.taxPercent
         const participantToken = validateString(req.get("Participant-Token"))
-        console.log(participantToken)
         if (!participantToken || !venmoHandle) {
             return res.status(400).json({error: "Invalid Participant Id or Venmo Handle"})
         }
@@ -397,7 +396,7 @@ receiptsRouter.patch("/update",
         } 
         for (const item of items) {
             if (!validateItem(item)) {
-                console.log(item)
+                
                 return res.status(400).json({ error: "Invalid Item in Items" })
             }
         }
