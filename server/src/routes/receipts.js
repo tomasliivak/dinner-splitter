@@ -39,12 +39,11 @@ function isValidNumber(x, { min = -Infinity, max = Infinity } = {}) {
 function validateItem(item) {
     if (typeof item !== "object" || item === null) return false;
     const receiptId = validateString(item.receipt_id, { regex: /^[0-9a-f-]{36}$/i })
-    const itemId = validateString(item.id, { regex: /^[0-9a-f-]{36}$/i })
     const quantity = Number.isInteger(Number(item.quantity)) && Number(item.quantity) >= 1 && Number(item.quantity) <= 100
     const price = isValidNumber(Number(item.line_total))
     const unitPrice = isValidNumber(Number(item.unit_price))
     const name = validateString(item.name)
-    if (!receiptId || !itemId || !quantity || !price || !unitPrice || !name) {
+    if (!receiptId || !quantity || !price || !unitPrice || !name) {
         return false
     }
     return true
@@ -398,7 +397,8 @@ receiptsRouter.patch("/update",
         } 
         for (const item of items) {
             if (!validateItem(item)) {
-                return res.status(400).json({ error: "Invalid Item in Claimed Items" })
+                console.log(item)
+                return res.status(400).json({ error: "Invalid Item in Items" })
             }
         }
         if (items.length > 100) {
