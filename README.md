@@ -4,18 +4,14 @@ A mobile-first web app that lets groups instantly split a restaurant bill.
 
 Upload a receipt → auto-parse items → friends claim what they ordered → pay instantly with Venmo.
 
-Built as a full-stack production app with OCR + LLM parsing.
+Built as a full-stack web application with OCR + LLM parsing.
 
-
-## Live Demo
-https://usedivvy.app
-
+> **Project status:** Completed. The original deployment is no longer live, but the full product flow is demonstrated below.
 
 ## Demo
 
 ### Full Flow (upload → parse → claim → pay)
 <img src="assets/gifuploaddivvy.gif" width="500"/>
-
 
 ### Screenshots
 <img src="assets/upload1.png" width="300"/>
@@ -25,7 +21,7 @@ https://usedivvy.app
 
 ## Why this project exists
 
-Splitting restaurant bills manually is slow and error-prone.
+Splitting restaurant bills manually is slow and error-prone.  
 Dinner Splitter automates the entire process from receipt photo to payment links — no accounts required.
 
 Users simply share a link and claim their items.
@@ -60,6 +56,7 @@ Users simply share a link and claim their items.
 - OpenAI (receipt parsing / cleanup)
 
 ### Infrastructure
+The original deployment used:
 - Render (backend hosting)
 - AWS RDS (managed database)
 - Vercel (static frontend hosting)
@@ -69,28 +66,12 @@ Users simply share a link and claim their items.
 ## Engineering Highlights
 
 - Designed relational schema for receipts, items, participants, and claims
-- Built OCR → LLM processing pipeline to convert messy receipt text into structured data
-- Implemented share-token participation system (no authentication required)
+- Built an OCR → LLM processing pipeline to convert messy receipt text into structured data
+- Implemented a share-token participation system with no authentication required
 - Integrated Venmo deep links for one-tap payments
-- Deployed production backend and database
-- Handles concurrent item claims safely
+- Originally deployed the application using Vercel, Render, and AWS RDS
+- Implemented concurrency-safe item claiming
 
 ## Project Structure
-client/ React frontend
+client/ React frontend  
 server/ Express backend
-
----
-
-## Run Locally
-
-### Client
-cd client
-npm install
-npm run dev
-
-### Server
-
-cd server
-npm install
-npm run dev
-
